@@ -1,50 +1,293 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@using MakeUBeauty.Data
+@inject AppDbContext _context
+@{
+    var userIdRaw = Context.Session.GetString("UserId");
+    int globalOrderCount = 0;
+
+    if (!string.IsNullOrEmpty(userIdRaw) && int.TryParse(userIdRaw, out int userId))
+    {
+        globalOrderCount = _context.Orders.Count(o => o.UserId == userId);
+    }
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - MakeUBeauty</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - Make U Beauty</title>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/MakeUBeauty.styles.css" asp-append-version="true" />
+
+    <style>
+            :root {
+                --maroon: #640D14;
+                --gold: #E6C99D;
+                --footer-dark: #1a0406;
+            }
+
+            body {
+                font-family: 'Poppins', sans-serif;
+                overflow-x: hidden;
+            }
+
+            .font-playfair {
+                font-family: 'Playfair Display', serif;
+            }
+
+            .text-maroon {
+                color: var(--maroon);
+            }
+
+            .text-gold {
+                color: var(--gold);
+            }
+
+            .bg-maroon {
+                background-color: var(--maroon);
+            }
+
+            .navbar {
+                transition: all 0.3s ease;
+            }
+
+            .nav-link {
+                transition: 0.3s;
+                color: #333 !important;
+                position: relative;
+            }
+
+                .nav-link:hover {
+                    color: var(--maroon) !important;
+                }
+
+                .nav-link::after {
+                    content: '';
+                    position: absolute;
+                    width: 0;
+                    height: 2px;
+                    bottom: 0;
+                    left: 0;
+                    background-color: var(--gold);
+                    transition: width 0.3s;
+                }
+
+                .nav-link:hover::after {
+                    width: 100%;
+                }
+
+            .btn-maroon {
+                background-color: var(--maroon);
+                color: white;
+                border: 2px solid var(--maroon);
+                transition: 0.3s;
+            }
+
+                .btn-maroon:hover {
+                    background-color: transparent;
+                    color: var(--maroon);
+                    border-color: var(--maroon);
+                }
+
+            .badge-custom {
+                position: absolute;
+                top: -8px;
+                right: -10px;
+                background-color: var(--gold);
+                color: var(--maroon);
+                font-size: 0.65rem;
+                font-weight: 800;
+                padding: 2px 7px;
+                border-radius: 50px;
+                border: 2px solid white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .nav-icon-link {
+                transition: 0.3s;
+                color: var(--maroon);
+                text-decoration: none;
+            }
+
+                .nav-icon-link:hover {
+                    transform: translateY(-3px);
+                    color: var(--gold);
+                }
+
+            .footer-dark {
+                background-color: var(--footer-dark);
+                color: white;
+            }
+
+            .hover-gold:hover {
+                color: var(--gold) !important;
+                transition: 0.2s;
+            }
+
+            .modal-content.bg-maroon {
+                border: 2px solid var(--gold);
+            }
+    </style>
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+<body class="bg-white">
+
+    <header class="sticky-top shadow-sm animate__animated animate__fadeInDown">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white py-3 border-bottom px-4">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">MakeUBeauty</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand font-playfair fw-bold fs-3" asp-controller="Home" asp-action="Index">
+                    <span class="text-maroon">Make U</span> <span class="text-gold">Beauty</span>
+                </a>
+
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav mx-auto text-uppercase fw-bold small" style="letter-spacing: 1px;">
+                        <li class="nav-item px-2"><a class="nav-link" asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li class="nav-item px-2"><a class="nav-link" asp-controller="Home" asp-action="Shop">Shop</a></li>
+                        <li class="nav-item px-2"><a class="nav-link" asp-controller="Home" asp-action="Brands">Brands</a></li>
+                        <li class="nav-item px-2"><a class="nav-link" asp-controller="Home" asp-action="About">About</a></li>
+                        <li class="nav-item px-2"><a class="nav-link" asp-controller="Home" asp-action="Contact">Contact</a></li>
                     </ul>
+
+                    <div class="d-flex align-items-center gap-4">
+                        @if (Context.Session.GetString("UserStatus") == "LoggedIn")
+                        {
+                            <a asp-controller="Home" asp-action="Profile" class="nav-icon-link position-relative" title="My Profile">
+                                <i class="fa-solid fa-user fs-5"></i>
+                            </a>
+
+                            <a asp-controller="Home" asp-action="Wishlist" class="nav-icon-link position-relative" title="My Wishlist">
+                                <i class="fa-regular fa-heart fs-5"></i>
+                                <span id="wishlist-count-badge"
+                                      class="badge-custom @(Context.Session.GetInt32("WishlistCount") > 0 ? "" : "d-none")">
+                                    @(Context.Session.GetInt32("WishlistCount") ?? 0)
+                                </span>
+                            </a>
+
+                            <a asp-controller="Home" asp-action="Cart" class="nav-icon-link position-relative" title="Shopping Bag">
+                                <i class="fa-solid fa-bag-shopping fs-5"></i>
+                                <span id="cart-count-badge"
+                                      class="badge-custom @(ViewBag.CartCount > 0 ? "" : "d-none")">
+                                    @(ViewBag.CartCount ?? 0)
+                                </span>
+                            </a>
+
+                            <a asp-controller="Home" asp-action="Orders"
+                                   class="nav-icon-link position-relative" title="My Orders">
+
+                                <i class="fa-solid fa-box fs-5"></i>
+
+                                <span id="order-count-badge"
+                                      class="badge-custom @(ViewBag.OrderCount > 0 ? "" : "d-none")">
+                                    @(ViewBag.OrderCount ?? 0)
+                                </span>
+
+                            </a>
+
+                            <button type="button" class="btn btn-maroon rounded-pill px-4 btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                                LOGOUT
+                            </button>
+                        }
+                        else
+                        {
+                            <a class="btn btn-outline-dark rounded-pill px-4 btn-sm fw-bold me-2" asp-controller="Home" asp-action="Login">LOGIN</a>
+                            <a class="btn btn-maroon rounded-pill px-4 btn-sm fw-bold shadow-sm" asp-controller="Home" asp-action="Register">REGISTER</a>
+                        }
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - MakeUBeauty - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <main role="main" class="animate__animated animate__fadeIn">
+        @RenderBody()
+    </main>
+
+    <footer class="footer-dark py-5 mt-auto">
+        <div class="container text-center text-md-start">
+            <div class="row g-5">
+                <div class="col-md-4">
+                    <h4 class="font-playfair fw-bold mb-4">Make U <span class="text-gold">Beauty</span></h4>
+                    <p class="small opacity-50">Empowering your natural glow with premium, dermatologist-tested products curated specifically for your skin's unique needs.</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h6 class="text-uppercase fw-bold mb-4 tracking-widest" style="font-size: 0.75rem;">Company</h6>
+                    <div class="d-flex flex-column gap-2 small">
+                        <a asp-controller="Home" asp-action="Shop" class="text-white-50 text-decoration-none hover-gold">New Arrivals</a>
+                        <a asp-controller="Home" asp-action="About" class="text-white-50 text-decoration-none hover-gold">Our Philosophy</a>
+                        <a asp-controller="Home" asp-action="Contact" class="text-white-50 text-decoration-none hover-gold">Customer Support</a>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center text-md-end">
+                    <h6 class="text-uppercase fw-bold mb-4 tracking-widest" style="font-size: 0.75rem;">The Community</h6>
+                    <div class="d-flex justify-content-center justify-content-md-end gap-3 fs-5">
+                        <a href="https://instagram.com/cthrine.19" target="_blank">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://facebook.com/cth_rine19?igsh=dnF3emf5aHNsN3Rq" target="_blank">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-5 opacity-25">
+            <div class="text-center extra-small opacity-50">
+                <p class="mb-0">&copy; 2026 Make U Beauty Portal. All Rights Reserved.</p>
+            </div>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <div class="modal fade animate__animated animate__zoomIn" id="logoutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 bg-maroon text-white text-center p-4">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <i class="bi bi-door-open display-4 text-gold"></i>
+                    </div>
+                    <h3 class="fw-bold font-playfair">Ready to leave?</h3>
+                    <p class="opacity-75">Your curated beauty favorites will be waiting for your next visit.</p>
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <button class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Stay</button>
+                        <a asp-controller="Home" asp-action="Logout" class="btn btn-light rounded-pill px-4 fw-bold text-maroon">Yes, Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        function handleCartAction(productId) {
+        console.log("CLICKED:", productId);
+
+        $.post('/Home/AddToCart', { id: productId, quantity: 1 }, function (response) {
+        console.log("RESPONSE:", response);
+
+        if (response.success) {
+        let badge = $('#cart-count-badge');
+
+        badge.text(response.newCount);
+
+        if (response.newCount > 0) {
+        badge.removeClass('d-none').show();
+        }
+        } else if (response.redirect) {
+        window.location.href = response.redirect;
+        }
+        });
+        }
+    </script>
 </body>
 </html>
