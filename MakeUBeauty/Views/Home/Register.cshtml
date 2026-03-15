@@ -1,0 +1,257 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Join Us - Make U Beauty</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --admin-maroon: #640D14;
+                --champagne-gold: #E3B685;
+                --glass-border: rgba(255, 255, 255, 0.2);
+            }
+
+            body {
+                background: linear-gradient(rgba(100, 13, 20, 0.85), rgba(100, 13, 20, 0.85)), url('/images/hero-makeup.jpg');
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: 'Poppins', sans-serif;
+                padding: 40px 0;
+                margin: 0;
+            }
+
+            .glass-box {
+                background: rgba(255, 255, 255, 0.08);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid var(--glass-border);
+                border-radius: 28px;
+                padding: 2.5rem;
+                width: 100%;
+                max-width: 480px;
+                color: white;
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            }
+
+            .font-playfair {
+                font-family: 'Playfair Display', serif;
+            }
+
+            .glass-input-group {
+                position: relative;
+                margin-bottom: 1.25rem;
+            }
+
+                .glass-input-group i {
+                    position: absolute;
+                    left: 15px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: var(--champagne-gold);
+                    font-size: 0.9rem;
+                }
+
+                .glass-input-group input {
+                    width: 100%;
+                    padding: 12px 15px 12px 45px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid var(--glass-border);
+                    border-radius: 12px;
+                    color: white;
+                    font-size: 0.9rem;
+                    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                    .glass-input-group input:focus {
+                        outline: none;
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: var(--champagne-gold);
+                        box-shadow: 0 0 15px rgba(227, 182, 133, 0.2);
+                    }
+
+                    .glass-input-group input::placeholder {
+                        color: rgba(255, 255, 255, 0.4);
+                    }
+
+            .btn-maroon-auth {
+                background: var(--admin-maroon);
+                color: white;
+                border: 1px solid var(--glass-border);
+                width: 100%;
+                padding: 14px;
+                border-radius: 12px;
+                font-weight: 700;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                transition: all 0.3s ease;
+                margin-top: 1rem;
+            }
+
+                .btn-maroon-auth:hover {
+                    background: #800e16;
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+                    border-color: var(--champagne-gold);
+                }
+
+            .create-link {
+                color: var(--champagne-gold);
+                text-decoration: none;
+                font-weight: 700;
+                transition: 0.3s;
+            }
+
+                .create-link:hover {
+                    color: white;
+                    text-shadow: 0 0 8px rgba(227, 182, 133, 0.5);
+                }
+
+            .form-check-input {
+                background-color: rgba(255,255,255,0.1);
+                border-color: var(--glass-border);
+                cursor: pointer;
+            }
+
+                .form-check-input:checked {
+                    background-color: var(--admin-maroon);
+                    border-color: var(--champagne-gold);
+                }
+
+            .back-link {
+                color: rgba(255,255,255,0.6);
+                text-decoration: none;
+                font-size: 0.85rem;
+                transition: 0.3s;
+            }
+
+                .back-link:hover {
+                    color: var(--champagne-gold);
+                }
+    </style>
+</head>
+<body>
+
+    <div class="animate__animated animate__fadeInUp">
+        <div class="glass-box">
+            <div class="mb-4">
+                <a asp-controller="Home" asp-action="Index" class="back-link">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Home
+                </a>
+            </div>
+
+            <div class="text-center mb-4">
+                <h2 class="fw-bold font-playfair mb-1" style="letter-spacing: 2px; font-size: 2rem;">Make U Beauty</h2>
+                <div class="mx-auto" style="width: 40px; height: 2px; background: var(--champagne-gold); margin-bottom: 10px;"></div>
+                <p class="small text-white-50">Join the club for an exclusive beauty experience.</p>
+            </div>
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger text-center mb-3"
+                     style="background: rgba(220,53,69,0.2); color:#ff8080; border:none;">
+                    <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+                </div>
+            }
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success text-center mb-3"
+                     style="background: rgba(40,167,69,0.2); color:#90ee90; border:none;">
+                    <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+                </div>
+            }
+
+            <form asp-controller="Home" asp-action="Register" method="post">
+                <div class="row">
+                    <div class="col-12">
+                        <label class="small fw-bold text-uppercase opacity-75 mb-2" style="font-size: 0.65rem; letter-spacing: 1px; color: var(--champagne-gold);">Full Name</label>
+                        <div class="glass-input-group">
+                            <i class="far fa-user"></i>
+                            <input type="text" name="FullName" placeholder="e.g. Jane Doe" required>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="small fw-bold text-uppercase opacity-75 mb-2" style="font-size: 0.65rem; letter-spacing: 1px; color: var(--champagne-gold);">Email Address</label>
+                        <div class="glass-input-group">
+                            <i class="far fa-envelope"></i>
+                            <input type="email" name="Email" placeholder="jane@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="small fw-bold text-uppercase opacity-75 mb-2" style="font-size: 0.65rem; letter-spacing: 1px; color: var(--champagne-gold);">Password</label>
+                        <div class="glass-input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" name="Password" placeholder="••••••••" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="small fw-bold text-uppercase opacity-75 mb-2" style="font-size: 0.65rem; letter-spacing: 1px; color: var(--champagne-gold);">Confirm</label>
+                        <div class="glass-input-group">
+                            <i class="fas fa-shield-alt"></i>
+                            <input type="password" name="ConfirmPassword" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-check mt-3 text-start">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           id="termsCheck"
+                           name="Terms"
+                           value="true"
+                           required>
+
+                    <label class="form-check-label small text-white" for="termsCheck">
+                        I agree to the
+
+                        <a asp-controller="Home"
+                               asp-action="Terms"
+                               asp-route-returnUrl="/Home/Register"
+                               class="text-warning text-decoration-underline">
+                            Terms of Service
+                        </a>
+
+                        &
+
+                        <a asp-controller="Home"
+                               asp-action="Privacy"
+                               asp-route-returnUrl="/Home/Register"
+                               class="text-warning text-decoration-underline">
+                            Privacy Policy
+                        </a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-maroon-auth">CREATE ACCOUNT</button>
+            </form>
+
+            <div class="mt-4 text-center">
+                <p class="small text-white-50">
+                    Already part of the community?
+                    <a href="/Login" class="create-link ms-1">Sign In</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

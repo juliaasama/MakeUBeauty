@@ -1,0 +1,238 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Make U Beauty</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+            :root {
+                --admin-maroon: #640D14;
+                --champagne-gold: #E3B685;
+                --glass-border: rgba(255, 255, 255, 0.2);
+            }
+
+            body {
+                background: linear-gradient(rgba(100, 13, 20, 0.85), rgba(100, 13, 20, 0.85)), url('/images/hero-makeup.jpg');
+                background-size: cover;
+                background-position: center;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: 'Poppins', sans-serif;
+                overflow: hidden;
+                margin: 0;
+            }
+
+            .glass-box {
+                background: rgba(255, 255, 255, 0.08);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid var(--glass-border);
+                border-radius: 28px;
+                padding: 3rem;
+                width: 100%;
+                max-width: 420px;
+                color: white;
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            }
+
+            .font-playfair {
+                font-family: 'Playfair Display', serif;
+            }
+
+            .glass-input-group {
+                position: relative;
+                margin-bottom: 1.25rem;
+            }
+
+                .glass-input-group i.input-icon {
+                    position: absolute;
+                    left: 15px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: var(--champagne-gold);
+                    font-size: 0.9rem;
+                }
+
+                .glass-input-group input {
+                    width: 100%;
+                    padding: 14px 15px 14px 45px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid var(--glass-border);
+                    border-radius: 12px;
+                    color: white;
+                    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    font-size: 0.9rem;
+                }
+
+                    .glass-input-group input:focus {
+                        outline: none;
+                        background: rgba(255, 255, 255, 0.12);
+                        border-color: var(--champagne-gold);
+                        box-shadow: 0 0 15px rgba(227, 182, 133, 0.2);
+                    }
+
+                    .glass-input-group input::placeholder {
+                        color: rgba(255,255,255,0.4);
+                    }
+
+            .toggle-password {
+                position: absolute;
+                right: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                cursor: pointer;
+                opacity: 0.5;
+                transition: 0.3s;
+                color: white;
+            }
+
+                .toggle-password:hover {
+                    opacity: 1;
+                    color: var(--champagne-gold);
+                }
+
+            .btn-maroon-auth {
+                background: var(--admin-maroon);
+                color: white;
+                border: 1px solid var(--glass-border);
+                width: 100%;
+                padding: 15px;
+                border-radius: 12px;
+                font-weight: 700;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                transition: all 0.3s ease;
+                margin-top: 1rem;
+            }
+
+                .btn-maroon-auth:hover {
+                    background: #800e16;
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+                    border-color: var(--champagne-gold);
+                }
+
+            .back-link {
+                color: rgba(255,255,255,0.6);
+                text-decoration: none;
+                font-size: 0.85rem;
+                transition: 0.3s;
+            }
+
+                .back-link:hover {
+                    color: var(--champagne-gold);
+                    transform: translateX(-3px);
+                    display: inline-block;
+                }
+
+            .create-link {
+                color: var(--champagne-gold);
+                text-decoration: none;
+                font-weight: 600;
+                transition: 0.3s;
+            }
+
+                .create-link:hover {
+                    color: white;
+                    text-shadow: 0 0 10px rgba(227, 182, 133, 0.5);
+                }
+
+            .hover-gold:hover {
+                color: var(--champagne-gold) !important;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="animate__animated animate__fadeIn">
+        <div class="glass-box">
+            <div class="mb-4">
+                <a asp-controller="Home" asp-action="Index" class="back-link">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Home
+                </a>
+            </div>
+
+            <div class="text-center mb-5">
+                <h2 class="fw-bold font-playfair mb-1" style="letter-spacing: 2px; font-size: 2.2rem;">Make U Beauty</h2>
+                <div class="mx-auto" style="width: 40px; height: 2px; background: var(--champagne-gold); margin-bottom: 15px;"></div>
+                <p class="small text-white-50 text-uppercase tracking-widest" style="font-size: 0.7rem;">Verified Member Access</p>
+            </div>
+
+            <form asp-controller="Home" asp-action="Login" method="post">
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger py-2 border-0 small animate__animated animate__shakeX mb-4"
+                         style="background: rgba(220, 53, 69, 0.2); color: #ff8080; border-radius: 10px;">
+                        <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+                    </div>
+                }
+
+                <div class="mb-1">
+                    <label class="small fw-bold text-uppercase opacity-75 mb-2" style="font-size: 0.65rem; letter-spacing: 1px; color: var(--champagne-gold);">Email Address</label>
+                    <div class="glass-input-group">
+                        <i class="far fa-envelope input-icon"></i>
+                        <input type="email" name="email" placeholder="e.g. hello@@makeubeauty.com" required>
+                    </div>
+                </div>
+
+                <div class="mb-1">
+                    <label class="small fw-bold text-uppercase opacity-75 mb-2" style="font-size: 0.65rem; letter-spacing: 1px; color: var(--champagne-gold);">Password</label>
+                    <div class="glass-input-group">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" name="password" id="passwordInput" placeholder="••••••••" required>
+                        <i class="far fa-eye toggle-password" id="togglePass"></i>
+                    </div>
+                </div>
+
+                <div class="text-end mb-4">
+                    <a asp-controller="Home"
+                           asp-action="ForgotPassword"
+                           class="text-white-50 small text-decoration-none hover-gold"
+                           style="font-size: 0.75rem;">
+                        Forgot Password?
+                    </a>
+                </div>
+
+                <button type="submit" class="btn-maroon-auth">Sign In</button>
+            </form>
+
+            <div class="mt-5 text-center">
+                <p class="small text-white-50">
+                    New to the club?
+                    <a asp-controller="Home" asp-action="Register" class="create-link ms-1">Create Account</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const togglePass = document.querySelector('#togglePass');
+                const passwordInput = document.querySelector('#passwordInput');
+
+                if (togglePass && passwordInput) {
+                    togglePass.addEventListener('click', function() {
+                        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                        passwordInput.setAttribute('type', type);
+
+                        this.classList.toggle('fa-eye');
+                        this.classList.toggle('fa-eye-slash');
+                    });
+                }
+            });
+    </script>
+
+</body>
+</html>
