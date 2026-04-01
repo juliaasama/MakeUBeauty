@@ -1,8 +1,344 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model IEnumerable<MakeUBeauty.Models.Product>
+
+@{
+    ViewData["Title"] = "Home";
+    var isLoggedIn = Context.Session.GetString("UserStatus") == "LoggedIn";
+    var wishlistIds = ViewBag.WishlistProductIds as List<int> ?? new List<int>();
+    var newArrivals = ViewBag.NewArrivals as List<MakeUBeauty.Models.Product> ?? new List<MakeUBeauty.Models.Product>();
+    var shopSale = ViewBag.ShopSale as List<MakeUBeauty.Models.Product> ?? new List<MakeUBeauty.Models.Product>();
+    var categoryCounts = ViewBag.CategoryCounts as Dictionary<string, int> ?? new Dictionary<string, int>();
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<section class="hero-maroon-marble d-flex align-items-center min-vh-100">
+    <div class="container text-white">
+        <div class="row align-items-center">
+            <div class="col-lg-7 py-5">
+                <h6 class="text-gold-accent mb-3 text-uppercase fw-bold tracking-widest">
+                    PREMIUM BEAUTY COLLECTION
+                </h6>
+                <h1 class="display-1 fw-bold mb-4 font-playfair">
+                    Unveil Your <br>
+                    <span class="text-gold-accent italic-style">Radiance</span>
+                </h1>
+                <p class="lead mb-5 opacity-90 max-w-550">
+                    Experience luxury redefined. Curated cosmetics for the modern woman.
+                </p>
+                <div class="d-flex gap-3">
+                    <a asp-action="Shop" class="btn btn-gold px-5 py-3 rounded-0 fw-bold">SHOP NOW</a>
+                    <a asp-action="Brands" class="btn btn-outline-light px-5 py-3 rounded-0 fw-bold">OUR BRANDS</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="py-4 border-bottom bg-light">
+    <div class="container d-flex flex-wrap justify-content-between gap-3 small text-uppercase fw-bold">
+        <span><i class="bi bi-truck me-2 text-gold"></i>Free Shipping Over ₱999</span>
+        <span><i class="bi bi-patch-check me-2 text-gold"></i>100% Authentic</span>
+        <span><i class="bi bi-gift me-2 text-gold"></i>Exclusive Sets</span>
+        <span><i class="bi bi-star me-2 text-gold"></i>Loyalty Rewards</span>
+    </div>
 </div>
+
+<section class="container-fluid px-lg-5 py-5 bg-soft">
+    <div class="text-center mb-5">
+        <p class="text-maroon fw-bold mb-1">EXPLORE</p>
+        <h2 class="display-4 fw-bold font-playfair">Shop by Category</h2>
+    </div>
+
+    <div class="row g-4 row-cols-2 row-cols-md-3 row-cols-lg-5">
+        @{
+            var categories = new[] {
+                new { Name = "Lipstick", Img = "lipstick.jpg" },
+                new { Name = "Blush", Img = "blush.jpg" },
+                new { Name = "Foundation", Img = "foundation.jpg" },
+                new { Name = "Mascara", Img = "mascara.jpg" },
+                new { Name = "Eyeshadow", Img = "eyeshadow.jpg" }
+            };
+        }
+
+        @foreach (var cat in categories)
+        {
+            int count = categoryCounts.ContainsKey(cat.Name) ? categoryCounts[cat.Name] : 0;
+            <div class="col">
+                <a asp-action="Shop" asp-route-category="@cat.Name" class="category-link text-decoration-none">
+                    <div class="category-card position-relative overflow-hidden rounded-4 shadow-sm ratio ratio-4x5">
+                        <img src="/images/@cat.Img" class="img-fluid object-fit-cover w-100" alt="@cat.Name" onerror="this.src='https://placehold.co/400x500'">
+                        <div class="category-overlay d-flex flex-column justify-content-end p-3">
+                            <h4 class="text-white fw-bold mb-0">@cat.Name</h4>
+                            <p class="text-white-50 small mb-0">@count Items</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container-fluid px-lg-5">
+        <div class="mb-4">
+            <p class="text-gold fw-bold mb-1">JUST IN</p>
+            <h2 class="display-5 fw-bold font-playfair">New Arrivals</h2>
+        </div>
+        <div class="row g-3 row-cols-2 row-cols-md-4 row-cols-lg-6">
+            @foreach (var p in newArrivals)
+            {
+                <div class="col">
+                    <div class="product-card card h-100 border-0 shadow-sm rounded-4 position-relative"
+                         onclick="location.href='@(isLoggedIn ? Url.Action("Details", "Home", new { id = p.Id }) : Url.Action("Login", "Home"))'">
+                        <button class="wishlist-btn border-0 bg-transparent position-absolute top-0 end-0 m-2 z-3"
+                                onclick="event.stopPropagation(); handleWishlistToggle(@p.Id)">
+                            <i id="wish-icon-@p.Id" class="bi @(wishlistIds.Contains(p.Id) ? "bi-heart-fill text-danger" : "bi-heart") fs-5"></i>
+                        </button>
+                        <div class="img-container" style="height: 250px;">
+                            <img src="/images/products/@p.ImageUrl" class="card-img-top h-100 object-fit-cover rounded-t-4" alt="@p.Name">
+                        </div>
+
+                        @if (p.Stock <= 0)
+                        {
+                            <span class="badge bg-danger position-absolute top-0 start-0 m-2">
+                                OUT OF STOCK
+                            </span>
+                        }
+
+                        <div class="card-body p-3">
+                            <span class="text-muted small text-uppercase">@p.Brand</span>
+                            <h6 class="fw-bold text-truncate mb-1 text-dark">@p.Name</h6>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="fw-bold text-maroon">₱@p.Price.ToString("N2")</span>
+
+                                @if (p.Stock <= 0)
+                                {
+                                    <button class="btn btn-cart-circle btn-secondary" disabled>
+                                        <i class="fa-solid fa-ban"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button onclick="event.stopPropagation(); handleCartAction(@p.Id)"
+                                            class="btn btn-cart-circle">
+                                        <i class="fa-solid fa-cart-plus"></i>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-white border-top">
+    <div class="container-fluid px-lg-5">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <p class="text-gold fw-bold mb-1">CURATED FOR YOU</p>
+                <h2 class="display-5 fw-bold font-playfair">Featured Products</h2>
+            </div>
+            <a asp-action="Shop" class="text-maroon text-decoration-none fw-bold">View All <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="row g-3 row-cols-2 row-cols-md-4 row-cols-lg-6">
+            @foreach (var p in Model)
+            {
+                <div class="col">
+                    <div class="product-card card h-100 border-0 shadow-sm rounded-4 position-relative"
+                         onclick="location.href='@(isLoggedIn ? Url.Action("Details", new { id = p.Id }) : Url.Action("Login"))'">
+                        <button class="wishlist-btn border-0 bg-transparent position-absolute top-0 end-0 m-2 z-3"
+                                onclick="event.stopPropagation(); handleWishlistToggle(@p.Id)">
+                            <i id="wish-icon-@p.Id" class="bi @(wishlistIds.Contains(p.Id) ? "bi-heart-fill text-danger" : "bi-heart") fs-5"></i>
+                        </button>
+                        <div class="img-container" style="height: 250px;">
+                            <img src="/images/products/@p.ImageUrl" class="card-img-top h-100 object-fit-cover rounded-t-4" alt="@p.Name">
+                        </div>
+
+                        @if (p.Stock <= 0)
+                        {
+                            <span class="badge bg-danger position-absolute top-0 start-0 m-2">
+                                OUT OF STOCK
+                            </span>
+                        }
+
+                        <div class="card-body p-3">
+                            <span class="text-muted small text-uppercase">@p.Brand</span>
+                            <h6 class="fw-bold text-truncate mb-1 text-dark">@p.Name</h6>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="fw-bold text-maroon">₱@p.Price.ToString("N2")</span>
+
+                                @if (p.Stock <= 0)
+                                {
+                                    <button class="btn btn-cart-circle btn-secondary" disabled>
+                                        <i class="fa-solid fa-ban"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button onclick="event.stopPropagation(); handleCartAction(@p.Id)"
+                                            class="btn btn-cart-circle">
+                                        <i class="fa-solid fa-cart-plus"></i>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function handleWishlistToggle(id) {
+            $.post('@Url.Action("ToggleWishlist", "Home")', { id: id }, function(res) {
+                if(res.success) {
+                    $(`#wish-icon-${id}`).toggleClass('bi-heart bi-heart-fill text-danger');
+                    $('#wishlist-count-badge').text(res.newCount).show();
+                } else if(res.redirect) {
+                    window.location.href = res.redirect;
+                }
+            });
+        }
+
+        function handleCartAction(id) {
+
+            $.post('@Url.Action("AddToCart", "Home")',
+                { id: id, quantity: 1 },
+                function(res) {
+
+                    if (res.success) {
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Added!',
+                            timer: 1000,
+                            showConfirmButton: false
+                        });
+
+                        $('#cart-count-badge')
+                            .text(res.newCount)
+                            .show();
+                    }
+                    else if (res.message) {
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: res.message,
+                            confirmButtonColor: '#640D14'
+                        });
+
+                    }
+                    else if (res.redirect) {
+
+                        window.location.href = res.redirect;
+
+                    }
+                });
+        }
+    </script>
+}
+
+<style>
+
+    .font-playfair {
+        font-family: 'Playfair Display', serif;
+    }
+
+    .hero-maroon-marble {
+        background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/images/hero-makeup.jpg') center/cover;
+        position: relative;
+    }
+
+    .text-gold {
+        color: #C5A059 !important;
+    }
+
+    .text-gold-accent {
+        color: #D4AF37 !important;
+    }
+
+    .text-maroon {
+        color: #640D14 !important;
+    }
+
+    .bg-soft {
+        background-color: #FAF9F8;
+    }
+
+    .tracking-widest {
+        letter-spacing: 0.25em;
+    }
+
+    .italic-style {
+        font-style: italic;
+    }
+
+    .max-w-550 {
+        max-width: 550px;
+    }
+
+    .btn-gold {
+        background-color: #C5A059;
+        color: white;
+        border: none;
+        transition: 0.3s;
+    }
+
+        .btn-gold:hover {
+            background-color: #A68546;
+            color: white;
+        }
+
+    .ratio-4x5 {
+        --bs-aspect-ratio: 125%;
+    }
+
+    .object-fit-cover {
+        object-fit: cover;
+    }
+
+    .category-card {
+        transition: all 0.5s ease;
+        border: none;
+    }
+
+        .category-card img {
+            transition: 0.6s transform;
+        }
+
+        .category-card:hover img {
+            transform: scale(1.1);
+        }
+
+    .category-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(transparent, rgba(100, 13, 20, 0.8));
+    }
+
+    .product-card {
+        cursor: pointer;
+        transition: 0.3s transform ease, 0.3s box-shadow ease;
+        background: white;
+    }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+
+    .img-container {
+        overflow: hidden;
+        background: #f8f9fa;
+    }
+
+    .wishlist-btn i {
+        transition: 0.3s;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+</style>
