@@ -1,0 +1,401 @@
+﻿@model MakeUBeauty.Models.Product
+@using System.Linq
+
+@{
+    ViewData["Title"] = Model.Name;
+
+    bool isOutOfStock = Model.Stock <= 0;
+
+    var productReviews =
+        Model.Reviews as IEnumerable<MakeUBeauty.Models.Review>
+        ?? new List<MakeUBeauty.Models.Review>();
+
+    var avgRating = Model.Rating;
+
+    bool isInWishlist = false;
+
+    var wishlistIds = ViewBag.WishlistProductIds as List<int>;
+
+    if (wishlistIds != null)
+    {
+        isInWishlist = wishlistIds.Contains(Model.Id);
+    }
+}
+
+<div class="container py-5">
+
+    <div class="row">
+
+        <!-- PRODUCT IMAGE -->
+        <div class="col-md-6 mb-4">
+
+            <div class="rounded-4 overflow-hidden shadow-sm bg-light">
+
+                <img src="/images/products/@Model.ImageUrl"
+                     class="img-fluid w-100"
+                     alt="@Model.Name"
+                     onerror="this.src='/images/no-image.png'">
+
+            </div>
+
+        </div>
+
+        <!-- PRODUCT DETAILS -->
+        <div class="col-md-6 ps-md-5">
+
+            <!-- PRODUCT NAME -->
+            <h1 class="fw-bold mb-2 font-playfair price-maroon">
+                @Model.Name
+            </h1>
+
+            <!-- RATING -->
+            <div class="d-flex align-items-center gap-2 mb-2">
+
+                <div class="text-warning d-flex align-items-center">
+
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        if (i <= Math.Floor(avgRating))
+                        {
+                            <i class="fa-solid fa-star review-star"></i>
+                        }
+                        else
+                        {
+                            <i class="fa-regular fa-star review-star"></i>
+                        }
+                    }
+
+                </div>
+
+                <span class="fw-semibold text-warning small">
+                    @avgRating.ToString("0.0")
+                </span>
+
+                <span class="text-muted small">
+                    (@(Model.Reviews?.Count() ?? 0) reviews)
+                </span>
+
+            </div>
+
+            <!-- PRICE -->
+            <h2 class="fw-bold mb-3 price-maroon">
+                ₱@Model.Price.ToString("N2")
+            </h2>
+
+            <!-- DESCRIPTION -->
+            <p class="text-muted mb-4">
+                @Model.Description
+            </p>
+
+            <!-- STOCK -->
+            @if (isOutOfStock)
+            {
+                <span class="badge bg-danger mb-4">
+                    OUT OF STOCK
+                </span>
+            }
+            else
+            {
+                <span class="badge stock-badge mb-4">
+                    In Stock:
+                    <span id="stockCount">@Model.Stock</span>
+                </span>
+            }
+
+            <!-- QUANTITY -->
+            <div class="d-flex align-items-center gap-3 mb-4">
+
+                @if (isOutOfStock)
+                {
+                    <div class="input-group" style="width:140px;">
+
+                        <button class="btn btn-outline-dark" disabled>
+                            -
+                        </button>
+
+                        <input id="qtyInput"
+                               class="form-control text-center"
+                               value="0"
+                               readonly>
+
+                        <button class="btn btn-outline-dark" disabled>
+                            +
+                        </button>
+
+                    </div>
+                }
+                else
+                {
+                    <div class="input-group" style="width:140px;">
+
+                        <button class="btn btn-outline-dark"
+                                onclick="updateQty(-1)">
+                            -
+                        </button>
+
+                        <input id="qtyInput"
+                               class="form-control text-center"
+                               value="1"
+                               readonly>
+
+                        <button class="btn btn-outline-dark"
+                                onclick="updateQty(1)">
+                            +
+                        </button>
+
+                    </div>
+                }
+
+                <small class="text-muted">
+                    Quantity
+                </small>
+
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="d-flex gap-2 mb-5">
+
+                @if (isOutOfStock)
+                {
+                    <button type="button"
+                            class="btn btn-secondary btn-lg rounded-pill w-100 py-3 fw-bold"
+                            disabled>
+
+                        <i class="bi bi-x-circle me-2"></i>
+                        OUT OF STOCK
+
+                    </button>
+                }
+                else
+                {
+                    <button type="button"
+                            class="btn btn-dark btn-lg rounded-pill w-100 py-3 fw-bold"
+                            onclick="addToCartFromDetails(@Model.Id)">
+
+                        <i class="bi bi-cart-plus me-2"></i>
+                        ADD TO CART
+
+                    </button>
+                }
+
+                <!-- WISHLIST -->
+                <button onclick="toggleWishlist(@Model.Id)"
+                        class="btn btn-outline-danger rounded-circle"
+                        style="width:55px;height:55px;">
+
+                    <i id="wishlistIcon"
+                           class="bi @(isInWishlist ? "bi-heart-fill text-danger" : "bi-heart") fs-4">
+                    </i>
+
+                </button>
+
+            </div>
+
+            <hr class="my-5" />
+
+            <!-- REVIEWS -->
+            <h4 class="fw-bold mb-4">
+                Customer Reviews
+            </h4>
+
+            @if (Model.Reviews != null && Model.Reviews.Any())
+            {
+                foreach (var review in Model.Reviews.OrderByDescending(r => r.DatePosted))
+                {
+                    <div class="card mb-3 p-3 shadow-sm rounded-3">
+
+                        <!-- USER -->
+                        <p class="fw-bold mb-1">
+
+                            @(string.IsNullOrEmpty(review.UserName)
+                                ? "Anonymous"
+                                : review.UserName)
+
+                        </p>
+
+                        <!-- REVIEW STARS -->
+                        <div class="mb-2 text-warning d-flex align-items-center">
+
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= review.Rating)
+                                {
+                                    <i class="fa-solid fa-star review-star"></i>
+                                }
+                                else
+                                {
+                                    <i class="fa-regular fa-star"></i>
+                                }
+                            }
+
+                        </div>
+
+                        <!-- COMMENT -->
+                        <p class="mb-1">
+                            @review.Comment
+                        </p>
+
+                        <!-- DATE -->
+                        <small class="text-muted">
+                            @review.DatePosted.ToString("MMM dd, yyyy")
+                        </small>
+
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted">
+                    No reviews yet.
+                </p>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+        function updateQty(val) {
+
+        let input = $('#qtyInput');
+        let stock = parseInt($('#stockCount').text()) || 1;
+        let current = parseInt(input.val());
+
+        let newVal = current + val;
+
+        if (newVal >= 1 && newVal <= stock) {
+        input.val(newVal);
+        }
+        }
+
+        function addToCartFromDetails(productId) {
+
+        let qty = parseInt($('#qtyInput').val()) || 1;
+
+        $.post('/Home/AddToCart',
+        {
+        id: productId,
+        quantity: qty
+        },
+        function (res) {
+
+        if (res.success) {
+
+        let badge = $('#cart-count-badge');
+
+        badge.text(res.newCount);
+
+        if (res.newCount > 0) {
+        badge.removeClass('d-none').show();
+        }
+
+        Swal.fire({
+        icon: 'success',
+        title: 'Added to Cart',
+        timer: 1200,
+        showConfirmButton: false
+        });
+        }
+
+        else if (res.message) {
+
+        Swal.fire({
+        icon: 'error',
+        title: res.message,
+        confirmButtonColor: '#640D14'
+        });
+        }
+
+        else if (res.redirect) {
+
+        window.location.href = res.redirect;
+        }
+        });
+        }
+
+        function buyNow(id) {
+
+        let qty = $('#qtyInput').val();
+
+        $.post('/Home/AddToCart',
+        {
+        id: id,
+        quantity: qty
+        },
+        function (res) {
+
+        if (res.success) {
+
+        window.location.href = '/Home/Checkout';
+        }
+
+        else if (res.message) {
+
+        Swal.fire({
+        icon: 'error',
+        title: res.message,
+        confirmButtonColor: '#640D14'
+        });
+        }
+
+        else if (res.redirect) {
+
+        window.location.href = res.redirect;
+        }
+        });
+        }
+
+        function toggleWishlist(id) {
+
+        $.post('/Home/ToggleWishlist',
+        {
+        id: id
+        },
+        function (res) {
+
+        if (res.success) {
+
+        let icon = $('#wishlistIcon');
+
+        if (icon.hasClass('bi-heart')) {
+
+        icon.removeClass('bi-heart')
+        .addClass('bi-heart-fill text-danger');
+        }
+        else {
+
+        icon.removeClass('bi-heart-fill text-danger')
+        .addClass('bi-heart');
+        }
+
+        $('#wishlist-count-badge')
+        .text(res.newCount)
+        .removeClass('d-none')
+        .show();
+        }
+
+        else if (res.redirect) {
+
+        window.location.href = res.redirect;
+        }
+        });
+        }
+
+    </script>
+}
+
+<style>
+
+    .review-star {
+    font-size: 14px;
+    margin-right: 2px;
+    }
+
+</style>

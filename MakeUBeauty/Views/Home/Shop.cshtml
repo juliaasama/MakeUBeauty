@@ -1,0 +1,323 @@
+﻿@model IEnumerable<MakeUBeauty.Models.Product>
+
+@{
+    ViewData["Title"] = "Shop Collection";
+    var isLoggedIn = Context.Session.GetString("UserStatus") == "LoggedIn";
+    var wishlistIds = ViewBag.WishlistProductIds as List<int> ?? new List<int>();
+}
+
+<section class="py-5 text-center shadow-inset position-relative overflow-hidden"
+         style="background: linear-gradient(rgba(67, 18, 21, 0.85), rgba(100, 13, 20, 0.9)), url('/images/shop-banner.jpg') center/cover;">
+    <div class="container py-4 animate__animated animate__fadeIn">
+        <p class="text-uppercase small fw-bold mb-2 tracking-widest" style="color: #E3B685; letter-spacing: 3px;">The Art of Beauty</p>
+        <h1 class="display-3 font-playfair fw-bold text-white mb-0">Curated Collection</h1>
+        <div class="gold-divider mx-auto mt-3"></div>
+    </div>
+</section>
+
+<section class="sticky-top bg-white border-bottom shadow-sm py-3" style="z-index: 1020; top: 0;">
+    <div class="container">
+        <form asp-action="Shop" method="get" id="filterForm">
+            <div class="row g-2 align-items-center">
+                <div class="col-lg-4">
+                    <div class="input-group search-group">
+                        <span class="input-group-text bg-light border-0"><i class="fas fa-search text-muted small"></i></span>
+                        <input type="text" name="searchTerm" value="@Context.Request.Query["searchTerm"]"
+                               class="form-control bg-light border-0 py-2 small" placeholder="Search products or brands...">
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-2">
+                    <select name="brand" class="form-select bg-light border-0 py-2 small" onchange="this.form.submit()">
+                        <option value="">All Brands</option>
+                        @foreach (var brand in (ViewBag.Brands as IEnumerable<string>) ?? Enumerable.Empty<string>())
+                        {
+                            <!option value="@brand" @(Context.Request.Query["brand"] == brand ? "selected" : "")>@brand</!option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-6 col-lg-2">
+                    <select name="category" class="form-select bg-light border-0 py-2 small" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        @foreach (var cat in (ViewBag.Categories as IEnumerable<string>)?.Distinct() ?? Enumerable.Empty<string>())
+                        {
+                            <!option value="@cat" @(Context.Request.Query["category"] == cat ? "selected" : "")>@cat</!option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-lg-2">
+                    <select name="sortOrder" class="form-select bg-light border-0 py-2 small" onchange="this.form.submit()">
+                        <option value="">Sort: Default</option>
+                        <!option value="price_asc" @(Context.Request.Query["sortOrder"] == "price_asc" ? "selected" : "")>Price: Low to High</!option>
+                        <!option value="price_desc" @(Context.Request.Query["sortOrder"] == "price_desc" ? "selected" : "")>Price: High to Low</!option>
+                        <!option value="rating" @(Context.Request.Query["sortOrder"] == "rating" ? "selected" : "")>Highest Rated</!option>
+                    </select>
+                </div>
+
+                <div class="col-lg-2 d-none d-lg-block text-end">
+                    @if (!string.IsNullOrEmpty(Context.Request.Query["searchTerm"]) || !string.IsNullOrEmpty(Context.Request.Query["brand"]) || !string.IsNullOrEmpty(Context.Request.Query["category"]))
+                    {
+                        <a asp-action="Shop" class="btn btn-link btn-sm text-maroon text-decoration-none fw-bold">
+                            <i class="fas fa-times-circle me-1"></i>Reset
+                        </a>
+                    }
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="py-5" style="background-color: #fdfdfd;">
+    <div class="container">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 animate__animated animate__fadeIn">
+                <i class="fas fa-search display-1 text-muted opacity-25 mb-3"></i>
+                <h3 class="font-playfair fw-bold">No Match Found</h3>
+                <p class="text-muted">Adjust your filters and try again.</p>
+                <a asp-action="Shop" class="btn btn-maroon px-4 rounded-pill">View All Products</a>
+            </div>
+        }
+        else
+        {
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
+                @foreach (var item in Model)
+                {
+                    bool inWishlist = wishlistIds.Contains(item.Id);
+
+                    <div class="col animate__animated animate__fadeInUp">
+                        <div class="product-card card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative"
+                             onclick="location.href='@(isLoggedIn ? Url.Action("Details", "Home", new { id = item.Id }) : Url.Action("Login", "Home"))'">
+
+                            <div class="position-relative overflow-hidden" style="height: 280px; background-color: #f8f9fa;">
+
+                                @if (item.Stock <= 0)
+                                {
+                                    <span class="badge bg-danger position-absolute top-0 end-0 m-3 px-3 py-2 shadow-sm">
+                                        OUT OF STOCK
+                                    </span>
+                                }
+
+                                <img src="/images/products/@item.ImageUrl" class="w-100 h-100 object-fit-cover img-main transition-transform"
+                                     alt="@item.Name" onerror="this.src='/images/no-image.png'">
+
+                                @if (item.OldPrice > item.Price)
+                                {
+                                    <span class="badge position-absolute top-0 start-0 m-3 bg-maroon rounded-pill px-3 py-2 shadow-sm">
+                                        -@((int)((1 - (double)item.Price / (double)(item.OldPrice ?? 1)) * 100))%
+                                    </span>
+                                }
+
+                                <button onclick="event.stopPropagation(); handleWishlistToggle(@item.Id)"
+                                        class="wishlist-float-btn position-absolute top-0 end-0 m-3 rounded-circle shadow-sm border-0 d-flex align-items-center justify-content-center">
+                                    <i id="wish-icon-@item.Id" class="fa@(inWishlist ? "-solid" : "-regular") fa-heart @(inWishlist ? "text-danger" : "text-dark")"></i>
+                                </button>
+
+                            </div>
+
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <span class="text-muted small text-uppercase fw-bold tracking-tight" style="font-size: 0.65rem;">@item.Brand</span>
+                                    
+                                    <div class="small text-warning" style="font-size: 0.75rem;">
+                                        <i class="fas fa-star"></i>
+                                        @item.Rating.ToString("0.0")
+                                    </div>
+
+                                </div>
+                                <h6 class="card-title fw-bold text-dark mb-2 text-truncate" style="font-size: 0.9rem;">@item.Name</h6>
+
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <span class="fw-bold fs-5 text-maroon">₱@item.Price.ToString("N2")</span>
+                                    @if (item.OldPrice > item.Price)
+                                    {
+                                        <span class="text-muted text-decoration-line-through x-small">₱@item.OldPrice?.ToString("N2")</span>
+                                    }
+                                </div>
+
+                                @if (item.Stock <= 0)
+                                {
+                                    <button class="btn btn-secondary w-100 rounded-pill btn-sm fw-bold py-2" disabled>
+                                        OUT OF STOCK
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-maroon w-100 rounded-pill btn-sm fw-bold py-2">
+                                        VIEW PRODUCT
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<style>
+    :root {
+        --system-maroon: #640D14;
+        --maroon-dark: #431215;
+        --gold-light: #E3B685;
+    }
+
+    .font-playfair {
+        font-family: 'Playfair Display', serif;
+    }
+
+    .text-maroon {
+        color: var(--system-maroon) !important;
+    }
+
+    .bg-maroon {
+        background-color: var(--system-maroon) !important;
+    }
+
+    .gold-divider {
+        width: 50px;
+        height: 2px;
+        background-color: var(--gold-light);
+    }
+
+    /* Card Animations */
+    .product-card {
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(0,0,0,0.03) !important;
+    }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(100, 13, 20, 0.1) !important;
+        }
+
+    .transition-transform {
+        transition: transform 0.6s ease;
+    }
+
+    .product-card:hover .img-main {
+        transform: scale(1.08);
+    }
+
+    /* Float Wishlist Button */
+    .wishlist-float-btn {
+        width: 38px;
+        height: 38px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(4px);
+        transition: 0.3s;
+    }
+
+        .wishlist-float-btn:hover {
+            background: #fff;
+            transform: scale(1.1);
+        }
+
+    /* Buttons */
+    .btn-maroon {
+        background-color: var(--system-maroon);
+        color: white;
+        border: none;
+    }
+
+    .btn-outline-maroon {
+        border: 1.5px solid var(--system-maroon);
+        color: var(--system-maroon);
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+    }
+
+        .btn-outline-maroon:hover {
+            background-color: var(--system-maroon);
+            color: white;
+        }
+
+    .search-group input:focus {
+        background-color: #fff !important;
+        box-shadow: none;
+        border: 1px solid var(--gold-light) !important;
+    }
+
+    .x-small {
+        font-size: 0.7rem;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function handleWishlistToggle(productId) {
+            @if (!isLoggedIn)
+            {
+                        <text>window.location.href = '/Home/Login';</text>
+            }
+            else
+            {
+                        <text>
+                                $.post('/Home/ToggleWishlist', { id: productId }, function (res) {
+
+                                    console.log("Wishlist:", res);
+
+                                    const icon = $('#wish-icon-' + productId);
+
+                                    if (res.success) {
+                                        if (icon.hasClass('fa-regular')) {
+                                            icon.removeClass('fa-regular text-dark')
+                                                .addClass('fa-solid text-danger');
+                                        } else {
+                                            icon.removeClass('fa-solid text-danger')
+                                                .addClass('fa-regular text-dark');
+                                        }
+
+                                        $('#wishlist-count-badge')
+                                            .text(res.newCount)
+                                            .removeClass('d-none')
+                                            .show();
+                                    }
+                                });
+                        </text>
+            }
+        }
+
+        function handleCartAction(productId) {
+
+            $.post('/Home/AddToCart', { id: productId, quantity: 1 }, function (response) {
+
+                console.log("CART RESPONSE:", response);
+
+                if (response.success) {
+
+                    $('#cart-count-badge')
+                        .text(response.newCount)
+                        .removeClass('d-none')
+                        .show();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Cart',
+                        timer: 1000,
+                        showConfirmButton: false
+                    });
+
+                }
+                else if (response.message) {
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: response.message,
+                        confirmButtonColor: '#640D14'
+                    });
+
+                }
+                else if (response.redirect) {
+
+                    window.location.href = response.redirect;
+
+                }
+            });
+        }
+    </script>
+}
