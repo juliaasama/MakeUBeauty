@@ -1,0 +1,214 @@
+﻿@{
+    ViewData["Title"] = "About Us";
+}
+
+@* --- HERO SECTION (Exact Maroon/Gold Gradient) --- *@
+<div class="about-hero text-center shadow-sm">
+    <div class="container animate__animated animate__fadeIn">
+        <p class="text-uppercase small mb-2 hero-subtitle">Authentic & Empowering</p>
+        <h1 class="display-3 fw-bold mb-0 font-playfair">Our Beautiful Journey</h1>
+        <div class="gold-divider mx-auto mt-3"></div>
+    </div>
+</div>
+
+<div class="container mt-n5">
+    @* --- TOP DESCRIPTION CARD --- *@
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 bg-white floating-card">
+                <div class="text-center">
+                    <p class="about-description fs-5 text-secondary lh-lg mb-0">
+                        <span class="text-maroon fw-bold font-playfair fs-3">Make U Beauty</span> was born from a passion for making premium cosmetics accessible to every Filipina.
+                        We believe that beauty isn't just about the products you wear—it's a form of self-expression.
+                        Everyone deserves access to high-quality, authentic products that celebrate their unique radiance and boost their confidence.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* --- THREE PILLARS SECTION --- *@
+    <div class="row g-4 justify-content-center my-5 pb-5">
+        <div class="col-lg-4 col-md-6">
+            <div class="card about-card h-100 border-0 shadow-sm transition-hover">
+                <div class="card-body text-center p-4">
+                    <div class="icon-circle bg-maroon-light text-maroon mb-4 mx-auto">
+                        <i class="fas fa-certificate fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold font-playfair">Authentic Products</h5>
+                    <p class="text-muted small">Every item in our catalog is 100% genuine, sourced directly from authorized global distributors to ensure your skin gets only the best.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card about-card h-100 border-0 shadow-sm transition-hover">
+                <div class="card-body text-center p-4">
+                    <div class="icon-circle bg-maroon-light text-maroon mb-4 mx-auto">
+                        <i class="fas fa-wand-magic-sparkles fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold font-playfair">Curated Selection</h5>
+                    <p class="text-muted small">We don't just sell makeup; we handpick the most effective formulations from top brands specifically for the modern Filipina lifestyle.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card about-card h-100 border-0 shadow-sm transition-hover">
+                <div class="card-body text-center p-4">
+                    <div class="icon-circle bg-maroon-light text-maroon mb-4 mx-auto">
+                        <i class="fas fa-hand-holding-heart fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold font-playfair">Community First</h5>
+                    <p class="text-muted small">Your voice matters. Real reviews and community feedback drive our collection, helping you make confident beauty choices every day.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* --- VISION & MISSION SECTION --- *@
+    <div class="row align-items-center mb-5 pb-5 g-5">
+        <div class="col-md-6">
+            <div class="position-relative">
+                <img src="/images/beauty-mission.jpg" class="img-fluid rounded-4 shadow-lg" alt="Our Mission" onerror="this.src='https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80'">
+                @* Design element: Gold border behind image *@
+                <div class="image-accent-border"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h6 class="text-maroon fw-bold text-uppercase mb-3 tracking-widest">The Vision</h6>
+            <h2 class="display-5 fw-bold font-playfair mb-4">Empowering Confidence through Radiance</h2>
+            <p class="text-muted mb-4 lead">Our vision is to become the Philippines' most trusted digital beauty destination, where luxury is affordable and authenticity is never questioned.</p>
+
+            <div class="vision-checklist">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="fas fa-check-circle text-gold me-3 fs-5"></i>
+                    <span class="fw-semibold">Inclusive beauty for all skin tones</span>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <i class="fas fa-check-circle text-gold me-3 fs-5"></i>
+                    <span class="fw-semibold">Sustainable and ethical sourcing</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle text-gold me-3 fs-5"></i>
+                    <span class="fw-semibold">Unmatched customer support</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Exact Color System */
+    :root {
+        --system-maroon: #640D14;
+        --system-gold: #C5A059;
+        --system-gold-light: #E3B685;
+    }
+
+    .font-playfair {
+        font-family: 'Playfair Display', serif;
+    }
+
+    .text-maroon {
+        color: var(--system-maroon) !important;
+    }
+
+    .text-gold {
+        color: var(--system-gold) !important;
+    }
+
+    /* Hero Styling */
+    .about-hero {
+        background: linear-gradient(rgba(100, 13, 20, 0.92), rgba(100, 13, 20, 0.92)), url('/images/about-bg-texture.jpg') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        color: white;
+        padding: 120px 0;
+    }
+
+    .hero-subtitle {
+        letter-spacing: 4px;
+        color: var(--system-gold-light);
+        font-weight: 600;
+    }
+
+    .gold-divider {
+        width: 60px;
+        height: 3px;
+        background-color: var(--system-gold-light);
+    }
+
+    /* Cards & Interaction */
+    .floating-card {
+        margin-top: -60px;
+        border-radius: 20px;
+    }
+
+    .bg-maroon-light {
+        background-color: rgba(100, 13, 20, 0.05);
+    }
+
+    .icon-circle {
+        width: 75px;
+        height: 75px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: 0.3s;
+    }
+
+    .about-card {
+        border-radius: 20px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .transition-hover:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
+    }
+
+        .transition-hover:hover .icon-circle {
+            background-color: var(--system-maroon);
+            color: white !important;
+        }
+
+    /* Decorative Elements */
+    .tracking-widest {
+        letter-spacing: 3px;
+    }
+
+    .image-accent-border {
+        position: absolute;
+        top: 20px;
+        left: -20px;
+        width: 100%;
+        height: 100%;
+        border: 2px solid var(--system-gold);
+        border-radius: 1.5rem;
+        z-index: -1;
+    }
+
+    .about-description {
+        line-height: 2;
+    }
+
+    @@media (max-width: 768px) {
+        .about-hero {
+            padding: 80px 0;
+        }
+
+        .display-3 {
+            font-size: 2.8rem;
+        }
+
+        .floating-card {
+            margin-top: -40px;
+        }
+
+        .image-accent-border {
+            display: none;
+        }
+    }
+</style>

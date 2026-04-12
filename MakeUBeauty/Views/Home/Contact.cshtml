@@ -1,0 +1,213 @@
+﻿@{
+    ViewData["Title"] = "Contact Us";
+}
+
+<div class="contact-hero text-center shadow-sm">
+    <div class="container animate__animated animate__fadeIn">
+        <p class="text-uppercase small mb-2 hero-subtitle">Support & Inquiries</p>
+        <h1 class="display-4 fw-bold mb-0 font-playfair text-white">Get In Touch</h1>
+        <div class="gold-divider mx-auto mt-3"></div>
+    </div>
+</div>
+
+<div class="container my-5 py-5">
+    <div class="row g-5">
+        <div class="col-lg-6 animate__animated animate__fadeInLeft">
+            <div class="pe-lg-4">
+                <h3 class="fw-bold mb-2 font-playfair">Send Us A Message</h3>
+                <p class="text-muted mb-4">Have a question about our products? Our beauty experts are here to help.</p>
+
+                <div id="successMessage" class="alert alert-success rounded-4 border-0 p-4 mb-4 shadow-sm" style="display: none;">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success text-white rounded-circle p-2 me-3">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Message Sent!</h6>
+                            <small>We'll get back to you within 24 hours.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="contactForm" class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold text-muted text-uppercase tracking-widest">Your Name</label>
+                        <input type="text" class="form-control form-control-lg rounded-3 custom-input" placeholder="Jane Doe" required>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold text-muted text-uppercase tracking-widest">Email Address</label>
+                        <input type="email" class="form-control form-control-lg rounded-3 custom-input" placeholder="jane@@example.com" required>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label small fw-bold text-muted text-uppercase tracking-widest">Message</label>
+                        <textarea class="form-control rounded-3 custom-input" rows="5" placeholder="How can we help you?" required></textarea>
+                    </div>
+                    <div class="col-12 mt-4">
+                        <button type="submit" id="submitBtn" class="btn btn-lg w-100 text-white fw-bold py-3 shadow btn-maroon">
+                            <span class="btn-text">SEND MESSAGE</span>
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-6 animate__animated animate__fadeInRight">
+            <h3 class="fw-bold mb-4 font-playfair">Contact Information</h3>
+
+            <div class="row g-4 mb-5">
+                <div class="col-md-12 d-flex align-items-center">
+                    <div class="icon-box bg-maroon-light text-maroon me-3">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div>
+                        <p class="small text-muted mb-0">Email us at</p>
+                        <p class="fw-bold mb-0">hello@@makeubeauty.com</p>
+                    </div>
+                </div>
+                <div class="col-md-12 d-flex align-items-center">
+                    <div class="icon-box bg-maroon-light text-maroon me-3">
+                        <i class="fas fa-phone-alt"></i>
+                    </div>
+                    <div>
+                        <p class="small text-muted mb-0">Call us</p>
+                        <p class="fw-bold mb-0">+63 912 345 6789</p>
+                    </div>
+                </div>
+                <div class="col-md-12 d-flex align-items-center">
+                    <div class="icon-box bg-maroon-light text-maroon me-3">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div>
+                        <p class="small text-muted mb-0">Visit our office</p>
+                        <p class="fw-bold mb-0">Manila, Philippines</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-4 overflow-hidden shadow-sm border position-relative" style="height: 320px;">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d123532.0620612239!2d120.91428236209594!3d14.63462947477543!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397ca035719a3b9%3A0x697587c5357ef482!2sManila%2C%20Metro%20Manila!5e0!3m2!1sen!2sph!4v1700000000000"
+                        width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy">
+                </iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --system-maroon: #640D14;
+        --system-gold: #C5A059;
+        --system-gold-light: #E3B685;
+    }
+
+    .font-playfair {
+        font-family: 'Playfair Display', serif;
+    }
+
+    .text-maroon {
+        color: var(--system-maroon);
+    }
+
+    .bg-maroon-light {
+        background-color: rgba(100, 13, 20, 0.08);
+    }
+
+    .tracking-widest {
+        letter-spacing: 2px;
+        font-size: 0.7rem;
+    }
+
+    .contact-hero {
+        background-color: var(--system-maroon);
+        color: white;
+        padding: 80px 0;
+    }
+
+    .hero-subtitle {
+        letter-spacing: 4px;
+        color: var(--system-gold-light);
+        font-weight: 600;
+    }
+
+    .gold-divider {
+        width: 50px;
+        height: 2px;
+        background-color: var(--system-gold-light);
+    }
+
+    .icon-box {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 1.2rem;
+    }
+
+    .custom-input {
+        background-color: #f8f9fa;
+        border: none;
+        padding-left: 1.5rem;
+        font-size: 0.95rem;
+        transition: 0.3s;
+    }
+
+        .custom-input:focus {
+            background-color: #fff !important;
+            border: 1px solid var(--system-maroon) !important;
+            box-shadow: none !important;
+        }
+
+    .btn-maroon {
+        background-color: var(--system-maroon);
+        border-radius: 12px;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-maroon:hover {
+            transform: translateY(-3px);
+            background-color: #4a0a0f;
+            box-shadow: 0 10px 20px rgba(100, 13, 20, 0.2) !important;
+        }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById('contactForm');
+        const successMsg = document.getElementById('successMessage');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = submitBtn.querySelector('.btn-text');
+        const spinner = submitBtn.querySelector('.spinner-border');
+
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                submitBtn.disabled = true;
+                btnText.classList.add('d-none');
+                spinner.classList.remove('d-none');
+
+                // Simulating AJAX Post following Discussions on server communication
+                setTimeout(function() {
+                    form.style.display = 'none';
+                    successMsg.style.display = 'block';
+
+                    window.scrollTo({ top: 200, behavior: 'smooth' });
+
+                    setTimeout(function() {
+                        successMsg.style.display = 'none';
+                        form.reset();
+                        form.style.display = 'block';
+
+                        submitBtn.disabled = false;
+                        btnText.classList.remove('d-none');
+                        spinner.classList.add('d-none');
+                    }, 5000);
+                }, 1500);
+            });
+        }
+    });
+</script>
