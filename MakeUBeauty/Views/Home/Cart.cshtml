@@ -1,0 +1,282 @@
+﻿@model IEnumerable<MakeUBeauty.Models.Cart>
+
+@{
+    ViewData["Title"] = "Shopping Cart";
+    decimal subtotal = Model?.Where(i => i.IsSelected).Sum(item => item.Price * item.Quantity) ?? 0;
+}
+
+<section class="cart-header text-center shadow-sm">
+    <div class="container py-4">
+        <h1 class="display-6 fw-bold m-0 font-playfair">Shopping Cart</h1>
+        <p class="small opacity-75 mt-2 tracking-widest text-gold-light">Manage your beauty essentials</p>
+    </div>
+</section>
+
+<div class="container py-5">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between mb-3">
+                <div>
+                    <input type="checkbox" id="selectAll"
+                    @(Model != null && Model.Any() && Model.All(i => i.IsSelected) ? "checked" : "")>
+                    <label for="selectAll">Select All</label>
+                </div>
+
+                <div>
+                    <button class="btn btn-outline-danger btn-sm" onclick="deleteSelectedItems()">
+                        Delete Selected
+                    </button>
+
+                    <button class="btn btn-danger btn-sm" onclick="handleDeleteAll()">
+                        Delete All
+                    </button>
+                </div>
+            </div>
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="text-center">
+                    <h4>Your cart is empty</h4>
+                </div>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    <div class="card mb-3 cart-item-card" id="cart-row-@item.Id">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+
+                                <div class="col-auto">
+                                    <input type="checkbox"
+                                           class="item-checkbox"
+                                           data-id="@item.Id"
+                                           data-price="@item.Price"
+                                           data-qty="@item.Quantity"
+                                    @(item.IsSelected ? "checked" : "")>
+                                </div>
+
+                                <div class="col-auto">
+                                    <img src="/images/products/@item.ProductImageUrl"
+                                         style="width:80px; height:80px; object-fit:cover;"
+                                         onerror="this.src='/images/products/fallback.jpg'">
+                                </div>
+
+                                <div class="col">
+                                    <p class="small text-muted">@item.BrandName</p>
+                                    <h6>@item.ProductName</h6>
+                                    <p>₱@item.Price.ToString("N2")</p>
+                                </div>
+
+                                <div class="col-auto">
+                                    <button onclick="updateQty(@item.Id, -1)">-</button>
+                                    <input type="text"
+                                           class="qty-input"
+                                           value="@item.Quantity"
+                                           readonly
+                                           style="width:40px;">
+                                    <button onclick="updateQty(@item.Id, 1)">+</button>
+                                </div>
+
+                                <div class="col-auto text-end">
+                                    <p class="fw-bold mb-1 row-total">
+                                        ₱@((item.Price * item.Quantity).ToString("N2"))
+                                    </p>
+
+                                    <button class="btn btn-sm btn-danger"
+                                            onclick="removeFromCart(@item.Id)">
+                                        Remove
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card p-4">
+                <h5>Summary</h5>
+
+                <p>Items: <span id="summary-count">@Model?.Count(i => i.IsSelected)</span></p>
+                <p>Subtotal: <span id="summary-subtotal">₱@subtotal.ToString("N2")</span></p>
+
+                <a href="#" class="btn btn-dark w-100" onclick="goToCheckout()">
+                    Checkout
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+        function updateQty(id, amount) {
+        $.post('/Home/UpdateCartQuantity', { id: id, amount: amount }, function (res) {
+
+        if (res.success) {
+        let row = $('#cart-row-' + id);
+
+        if (res.newQty === 0) {
+        row.remove();
+        } else {
+        row.find('.qty-input').val(res.newQty);
+        row.find('.row-total').text('₱' + res.newRowTotal);
+
+        row.find('.item-checkbox').data('qty', res.newQty);
+        }
+
+        $('#cart-count-badge').text(res.newCartCount);
+
+        updateSummary();
+        }
+        });
+        }
+
+        function updateSelection(id, isSelected) {
+        $.ajax({
+        url: '/Home/UpdateCartSelection',
+        type: 'POST',
+        data: { id: id, isSelected: isSelected },
+        success: function (res) {
+        console.log('Updated:', id, isSelected);
+        },
+        error: function () {
+        console.log('ERROR updating selection');
+        }
+        });
+        }
+
+        function updateSummary() {
+        let count = 0;
+        let subtotal = 0;
+
+        $('.item-checkbox').each(function () {
+        if ($(this).is(':checked')) {
+        let price = parseFloat($(this).data('price'));
+        let qty = parseInt($(this).data('qty'));
+
+        count += qty;
+        subtotal += price * qty;
+        }
+        });
+
+        $('#summary-count').text(count);
+        $('#summary-subtotal').text('₱' + subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 }));
+        }
+
+        function deleteSelectedItems() {
+        let ids = [];
+
+        $('.item-checkbox:checked').each(function () {
+        ids.push($(this).data('id'));
+        });
+
+        $.post('/Home/DeleteSelectedCartItems', { ids: ids }, function (res) {
+        if (res.success) {
+
+        $('#cart-count-badge')
+        .text(res.newCount)
+        .toggle(res.newCount > 0);
+
+        location.reload();
+        }
+        });
+        }
+
+        function handleDeleteAll() {
+        $.post('/Home/DeleteAllCartItems', function (res) {
+        if (res.success) {
+
+        $('#cart-count-badge')
+        .text(res.newCount)
+        .toggle(res.newCount > 0);
+
+        location.reload();
+        }
+        });
+        }
+
+        function removeFromCart(id) {
+
+        $.post('/Home/RemoveFromCart',
+        {
+        id: id
+        },
+        function (res) {
+
+        if (res.success) {
+
+        $('#cart-row-' + id).remove();
+
+        $('#cart-count-badge')
+        .text(res.newCount)
+        .toggle(res.newCount > 0);
+
+        Swal.fire({
+        icon: 'success',
+        title: 'Item Removed',
+        timer: 1000,
+        showConfirmButton: false
+        });
+
+        updateSummary();
+        }
+        });
+        }
+
+        function goToCheckout() {
+        let requests = [];
+
+        $('.item-checkbox').each(function () {
+        let id = $(this).data('id');
+        let isChecked = $(this).is(':checked');
+
+        requests.push(
+        $.post('/Home/UpdateCartSelection', {
+        id: id,
+        isSelected: isChecked
+        })
+        );
+        });
+
+        $.when.apply($, requests).done(function () {
+        window.location.href = '/Home/Checkout';
+        });
+        }
+
+        $('#selectAll').on('change', function () {
+        let isChecked = $(this).is(':checked');
+
+        $('.item-checkbox').each(function () {
+        let id = $(this).data('id');
+
+        $(this).prop('checked', isChecked);
+
+        updateSelection(id, isChecked);
+        });
+
+        updateSummary();
+        });
+
+        $(document).ready(function () {
+        updateSummary();
+        });
+
+        $('.item-checkbox').on('change', function () {
+        let id = $(this).data('id');
+        let isChecked = $(this).is(':checked');
+
+        updateSelection(id, isChecked);
+        updateSummary();
+        });
+
+    </script>
+}
