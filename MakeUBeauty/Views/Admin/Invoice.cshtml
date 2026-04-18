@@ -1,0 +1,208 @@
+﻿@model MakeUBeauty.Models.Order
+@{
+    Layout = null;
+
+    var startDelivery = Model.OrderDate.AddDays(2);
+    var endDelivery = Model.OrderDate.AddDays(3);
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Invoice</title>
+
+    <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 15px;
+                color: #222;
+                height: 100vh;
+            }
+
+            .invoice-box {
+                max-width: 750px;
+                margin: auto;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+
+            .top {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+            }
+
+            .brand {
+                font-size: 22px;
+                font-weight: bold;
+                color: #640D14;
+            }
+
+            .muted {
+                color: #777;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+
+            .section-title {
+                font-weight: bold;
+                font-size: 13px;
+                color: #640D14;
+                margin-bottom: 4px;
+            }
+
+            .content {
+                flex-grow: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                margin-top: 10px;
+            }
+
+            .two-col {
+                display: flex;
+                justify-content: space-between;
+                gap: 30px;
+                margin-bottom: 10px;
+            }
+
+            .box {
+                width: 100%;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 13px;
+            }
+
+                table th {
+                    text-align: left;
+                    border-bottom: 1px solid #ccc;
+                    padding: 6px 0;
+                }
+
+                table td {
+                    padding: 6px 0;
+                }
+
+            .total {
+                text-align: right;
+                font-size: 16px;
+                font-weight: bold;
+                margin-top: 10px;
+            }
+
+            .footer {
+                text-align: center;
+                font-size: 11px;
+                color: #777;
+                margin-top: 10px;
+            }
+
+            @@media print {
+                body {
+                    margin: 0;
+                    padding: 10px;
+                }
+
+                html, body {
+                    height: auto;
+                    overflow: hidden;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    <div class="invoice-box">
+
+        <div class="top">
+            <div>
+                <div class="brand">Make U Beauty</div>
+                <div class="muted">
+                    Quiapo, Manila<br>
+                    Philippines<br>
+                    makeubeauty@email.com
+                </div>
+            </div>
+
+            <div style="text-align:right;">
+                <strong>Invoice #ORD-@Model.Id.ToString("D6")</strong><br>
+                <span class="muted">@Model.OrderDate.ToString("MMM dd, yyyy")</span>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <div class="two-col">
+
+                <div class="box">
+                    <div class="section-title">Bill To</div>
+                    <div>@Model.FullName</div>
+                    <div class="muted">@Model.Email</div>
+                    <div class="muted">@Model.Address</div>
+                </div>
+
+                <div class="box">
+                    <div class="section-title">Shipping</div>
+                    <div>Method: @Model.ShippingMethod</div>
+                    <div class="muted">
+                        Estimated Delivery:<br>
+                        @startDelivery.ToString("MMM dd, yyyy") - @endDelivery.ToString("MMM dd, yyyy")
+                    </div>
+                </div>
+
+            </div>
+
+            <div>
+                <div class="section-title">Items</div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th style="width:60px;">Qty</th>
+                            <th style="width:100px;">Price</th>
+                            <th style="width:100px;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderItems)
+                        {
+                            <tr>
+                                <td>@item.ProductName</td>
+                                <td>@item.Quantity</td>
+                                <td>₱@item.Price.ToString("N2")</td>
+                                <td>₱@((item.Price * item.Quantity).ToString("N2"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="total">
+                    Total: ₱@Model.TotalAmount.ToString("N2")
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            Thank you for shopping with Make U Beauty 💄
+        </div>
+
+    </div>
+
+    <script>
+            window.onload = function () {
+                window.print();
+            };
+    </script>
+
+</body>
+</html>
