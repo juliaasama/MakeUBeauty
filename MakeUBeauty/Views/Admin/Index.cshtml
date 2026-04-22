@@ -1,0 +1,172 @@
+﻿@model IEnumerable<MakeUBeauty.Models.User>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Dashboard";
+
+    var customerList = Model?.Where(u => u.Role != "Admin").ToList() ?? new List<MakeUBeauty.Models.User>();
+}
+
+<div class="mb-4">
+    <h2 class="fw-bold text-admin-maroon font-playfair mb-1">
+        <i class="fas fa-chart-line me-2"></i>Admin Dashboard
+    </h2>
+    <p class="text-muted small">Monitor sales, orders, and customers</p>
+</div>
+
+<div class="row g-4 mb-4">
+
+    <div class="col-md-3">
+        <div class="dashboard-card">
+            <div class="icon bg-maroon"><i class="fas fa-users"></i></div>
+            <div>
+                <p>Total Users</p>
+                <h3>@ViewBag.TotalUsers</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dashboard-card">
+            <div class="icon bg-gold"><i class="fas fa-shopping-bag"></i></div>
+            <div>
+                <p>Total Orders</p>
+                <h3>@ViewBag.TotalOrders</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dashboard-card">
+            <div class="icon bg-success"><i class="fas fa-coins"></i></div>
+            <div>
+                <p>Total Sales</p>
+                <h3>₱@ViewBag.TotalSales.ToString("N2")</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dashboard-card">
+            <div class="icon bg-warning"><i class="fas fa-clock"></i></div>
+            <div>
+                <p>Pending Orders</p>
+                <h3>@ViewBag.PendingOrders</h3>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card admin-card mb-4">
+    <div class="card-body">
+        <h5 class="fw-bold text-admin-maroon mb-3">
+            <i class="fas fa-receipt me-2"></i>Recent Orders
+        </h5>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead class="bg-faint-maroon">
+                    <tr>
+                        <th>#ID</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in ViewBag.RecentOrders)
+                    {
+                        <tr>
+                            <td>#@order.Id</td>
+                            <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <span class="badge status-badge">@order.Status</span>
+                            </td>
+                            <td class="fw-bold text-admin-maroon">
+                                ₱@order.TotalAmount.ToString("N2")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    $("#adminCustomerSearch").on("keyup", function () {
+        var value = $(this).val().toLowerCase();
+        $("#adminUserTable tr").filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+    });
+</script>
+}
+
+<style>
+:root{
+    --admin-maroon:#640D14;
+    --admin-dark:#3a080c;
+    --admin-gold:#C5A059;
+}
+
+.dashboard-card{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:20px;
+    border-radius:15px;
+    background:white;
+    box-shadow:0 10px 25px rgba(0,0,0,0.05);
+}
+
+.dashboard-card .icon{
+    width:50px;
+    height:50px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:12px;
+    color:white;
+    font-size:20px;
+}
+
+.bg-maroon{ background:var(--admin-maroon); }
+.bg-gold{ background:var(--admin-gold); }
+
+.admin-card{
+    border:none;
+    border-radius:15px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.05);
+}
+
+.avatar{
+    width:40px;
+    height:40px;
+    background:linear-gradient(135deg,var(--admin-maroon),var(--admin-dark));
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    font-weight:bold;
+}
+
+.status-badge{
+    background:#fff4e5;
+    color:#b45309;
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:12px;
+}
+
+.btn-outline-maroon{
+    border:1px solid var(--admin-maroon);
+    color:var(--admin-maroon);
+}
+.btn-outline-maroon:hover{
+    background:var(--admin-maroon);
+    color:white;
+}
+</style>
