@@ -1,0 +1,162 @@
+﻿@model MakeUBeauty.Models.Order
+@{
+    ViewData["Title"] = "Write a Review";
+}
+
+<div class="container py-5" style="max-width: 800px;">
+    <div class="text-center mb-5 animate__animated animate__fadeIn">
+        <p class="text-uppercase small fw-bold tracking-widest text-gold-accent mb-2">Feedback Matters</p>
+        <h2 class="font-playfair fw-bold text-maroon display-5">Share Your Experience</h2>
+        <p class="text-muted">Order #ORD-@Model.Id.ToString("D12") • Completed on @Model.OrderDate.ToString("MMMM dd, yyyy")</p>
+        <div class="gold-divider mx-auto"></div>
+    </div>
+
+    <form asp-action="SubmitReview" asp-controller="Home" method="post" id="reviewForm">
+        <input type="hidden" name="OrderId" value="@Model.Id" />
+
+        @for (int i = 0; i < Model.OrderItems.Count; i++)
+        {
+            var item = Model.OrderItems.ElementAt(i);
+            <div class="card p-4 mb-4 shadow-sm border-0 rounded-4 review-card animate__animated animate__fadeInUp" style="animation-delay: @(i * 0.1)s">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="position-relative">
+                        <img src="/images/products/@item.ImageUrl" class="rounded-3 shadow-sm border"
+                             style="width: 90px; height: 90px; object-fit: cover;" alt="@item.ProductName">
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-maroon border border-white">
+                            @item.Quantity
+                        </span>
+                    </div>
+                    <div class="ms-4">
+                        <h5 class="fw-bold mb-1 text-dark">@item.ProductName</h5>
+                        <p class="small text-muted mb-0">Price: ₱@item.Price.ToString("N2")</p>
+                        <input type="hidden" name="Reviews[@i].ProductId" value="@item.ProductId" />
+                    </div>
+                </div>
+
+                <div class="mb-4 text-center p-4 rounded-4" style="background-color: #fdfaf5; border: 1px solid #f0e6d6;">
+                    <label class="form-label fw-bold d-block mb-3 text-uppercase small tracking-widest" style="color: #8d6e63;">How would you rate this product?</label>
+                    <div class="star-rating-container">
+                        @for (int star = 5; star >= 1; star--)
+                        {
+                            <input type="radio" id="star-@i-@star" name="Reviews[@i].Rating" value="@star" required class="star-input" />
+                            <label for="star-@i-@star" class="star-label" title="@star Stars">
+                                <i class="fa-solid fa-star"></i>
+                            </label>
+                        }
+                    </div>
+                    <div class="rating-text small text-muted mt-2">Click a star to rate</div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label fw-bold small text-uppercase tracking-tight text-maroon">Your Detailed Feedback</label>
+                    <textarea name="Reviews[@i].Comment" class="form-control border-0 bg-light p-3 rounded-3"
+                              rows="3" placeholder="What did you love about this product? Your review helps other beauty lovers!"></textarea>
+                </div>
+            </div>
+        }
+
+        <div class="text-center mt-5">
+            <button type="submit" class="btn btn-maroon btn-lg px-5 py-3 rounded-pill shadow-lg fw-bold tracking-widest">
+                SUBMIT ALL REVIEWS
+            </button>
+            <a asp-action="Orders" class="d-block mt-4 text-muted small text-decoration-none hover-gold transition-300">
+                <i class="fas fa-chevron-left me-1"></i> Review later
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+    :root {
+        --system-maroon: #640D14;
+        --maroon-dark: #431215;
+        --system-gold: #C5A059;
+        --gold-accent: #E3B685;
+    }
+
+    .font-playfair {
+        font-family: 'Playfair Display', serif;
+    }
+
+    .text-maroon {
+        color: var(--system-maroon);
+    }
+
+    .bg-maroon {
+        background-color: var(--system-maroon);
+    }
+
+    .text-gold-accent {
+        color: var(--system-gold);
+    }
+
+    .tracking-widest {
+        letter-spacing: 2px;
+    }
+
+    .gold-divider {
+        width: 60px;
+        height: 3px;
+        background-color: var(--gold-accent);
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+
+    .star-rating-container {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .star-input {
+        display: none;
+    }
+
+    .star-label {
+        font-size: 2.5rem;
+        color: #e0e0e0;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .star-input:checked ~ .star-label,
+        .star-label:hover,
+        .star-label:hover ~ .star-label {
+            color: #FFD700;
+            transform: scale(1.15);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+    .review-card {
+        border: 1px solid rgba(0,0,0,0.05) !important;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .review-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(100, 13, 20, 0.08) !important;
+        }
+
+    .btn-maroon {
+        background-color: var(--system-maroon);
+        color: white;
+        border: none;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+        .btn-maroon:hover {
+            background-color: var(--maroon-dark);
+            color: var(--gold-accent);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(100, 13, 20, 0.4);
+        }
+
+    .hover-gold:hover {
+        color: var(--system-gold) !important;
+    }
+
+    .transition-300 {
+        transition: 0.3s;
+    }
+</style>
