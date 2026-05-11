@@ -84,9 +84,7 @@ namespace MakeUBeauty.Controllers
             LoadUserWishlist();
             LoadCounts();
 
-            IQueryable<Product> productsQuery = _context.Products
-                .Include(p => p.Reviews)
-                .Where(p => p.IsActive);
+            IQueryable<Product> productsQuery = _context.Products.Where(p => p.IsActive);
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
                 productsQuery = productsQuery.Where(p => p.Name.ToLower().Contains(searchTerm.ToLower()));
@@ -436,42 +434,11 @@ namespace MakeUBeauty.Controllers
 
             if (product == null)
             {
-                return Json(new
-                {
-                    success = false,
-                    message = "Product not found."
-                });
-            }
-
-            // OUT OF STOCK CHECK
-            if (product.Stock <= 0)
-            {
-                return Json(new
-                {
-                    success = false,
-                    message = "This product is out of stock."
-                });
+                return Json(new { success = false });
             }
 
             var existing = _context.Carts
                 .FirstOrDefault(c => c.UserId == uid && c.ProductId == id);
-
-            int totalRequestedQty = quantity;
-
-            if (existing != null)
-            {
-                totalRequestedQty += existing.Quantity;
-            }
-
-            // STOCK LIMIT CHECK
-            if (totalRequestedQty > product.Stock)
-            {
-                return Json(new
-                {
-                    success = false,
-                    message = $"Only {product.Stock} item(s) available in stock."
-                });
-            }
 
             if (existing != null)
             {
@@ -544,11 +511,7 @@ namespace MakeUBeauty.Controllers
                 _context.SaveChanges();
             }
 
-            int? userId = HttpContext.Session.GetInt32("UserId");
-
-            var newCount = _context.Carts
-                .Where(c => c.UserId == userId)
-                .Sum(c => c.Quantity);
+            var newCount = _context.Carts.Sum(c => c.Quantity);
 
             return Json(new
             {
@@ -732,23 +695,6 @@ namespace MakeUBeauty.Controllers
             ViewBag.CurrentStatus = status;
 
             return View(query.OrderByDescending(o => o.OrderDate).ToList());
-        }
-
-        [HttpPost]
-        public IActionResult UpdateUserOrderStatus(int orderId, string newStatus)
-        {
-            var order = _context.Orders.FirstOrDefault(o => o.Id == orderId);
-
-            if (order == null)
-            {
-                return NotFound();
-            }
-
-            order.Status = newStatus;
-
-            _context.SaveChanges();
-
-            return RedirectToAction("Orders");
         }
 
         [HttpGet]
