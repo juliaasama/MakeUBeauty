@@ -21,7 +21,6 @@ namespace MakeUBeauty.Controllers
         private void LoadCounts()
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-
             if (!userId.HasValue)
             {
                 ViewBag.CartCount = 0;
@@ -29,18 +28,19 @@ namespace MakeUBeauty.Controllers
                 ViewBag.OrderCount = 0;
                 return;
             }
-
             int uid = userId.Value;
+            ViewBag.CartCount = _context.Carts.Where(c => c.UserId == uid).Sum(c => (int?)c.Quantity) ?? 0;
+            ViewBag.WishlistCount = _context.Wishlists.Count(w => w.UserId == uid);
+            ViewBag.OrderCount = _context.Orders.Count(o => o.UserId == uid);
+        }
 
-            ViewBag.CartCount = _context.Carts
-                .Where(c => c.UserId == uid)
-                .Sum(c => (int?)c.Quantity) ?? 0;
-
-            ViewBag.WishlistCount = _context.Wishlists
-                .Count(w => w.UserId == uid);
-
-            ViewBag.OrderCount = _context.Orders
-                .Count(o => o.UserId == uid);
+        private void LoadUserWishlist()
+        {
+            int? userId = HttpContext.Session.GetInt32("UserId");
+            List<int> ids = new();
+            if (userId.HasValue)
+                ids = _context.Wishlists.Where(w => w.UserId == userId.Value).Select(w => w.ProductId).ToList();
+            ViewBag.WishlistProductIds = ids;
         }
 
         [HttpGet]
@@ -88,10 +88,8 @@ namespace MakeUBeauty.Controllers
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
                 productsQuery = productsQuery.Where(p => p.Name.ToLower().Contains(searchTerm.ToLower()));
-
             if (!string.IsNullOrWhiteSpace(brand))
                 productsQuery = productsQuery.Where(p => p.Brand == brand);
-
             if (!string.IsNullOrWhiteSpace(category))
                 productsQuery = productsQuery.Where(p => p.Category == category);
 
@@ -112,111 +110,54 @@ namespace MakeUBeauty.Controllers
         public IActionResult Brands()
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-
             if (!userId.HasValue)
             {
                 ViewBag.WishlistProductIds = new List<int>();
                 return View(_context.Products.ToList());
             }
-
             int uid = userId.Value;
-
-            var wishlistIds = _context.Wishlists
-                .Where(w => w.UserId == uid)
-                .Select(w => w.ProductId)
-                .ToList();
-
+            var wishlistIds = _context.Wishlists.Where(w => w.UserId == uid).Select(w => w.ProductId).ToList();
             ViewBag.WishlistProductIds = wishlistIds;
-
             return View(_context.Products.ToList());
         }
 
-        public IActionResult About()
-        {
-            return View();
-        }
-
-        public IActionResult Contact()
-        {
-            return View();
-        }
+        public IActionResult About() => View();
+        public IActionResult Contact() => View();
 
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-
-            var product = await _context.Products
-                .Include(p => p.Reviews)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
+            var product = await _context.Products.Include(p => p.Reviews).FirstOrDefaultAsync(m => m.Id == id);
             if (product == null) return NotFound();
-
             LoadUserWishlist();
             return View(product);
         }
 
         [HttpGet]
-        public IActionResult Register()
-        {
-            return View();
-        }
+        public IActionResult Register() => View();
 
         [HttpPost]
         public IActionResult Register(string FullName, string Email, string Password, string ConfirmPassword, bool Terms)
         {
-            if (!Terms)
-            {
-                TempData["ErrorMessage"] = "You must agree to the Terms of Service.";
-                return RedirectToAction("Register");
-            }
-
-            if (Password != ConfirmPassword)
-            {
-                TempData["ErrorMessage"] = "Passwords do not match.";
-                return RedirectToAction("Register");
-            }
-
+            if (!Terms) { TempData["ErrorMessage"] = "You must agree to the Terms of Service."; return RedirectToAction("Register"); }
+            if (Password != ConfirmPassword) { TempData["ErrorMessage"] = "Passwords do not match."; return RedirectToAction("Register"); }
             var existingUser = _context.Users.FirstOrDefault(u => u.Email == Email);
-            if (existingUser != null)
-            {
-                TempData["ErrorMessage"] = "This email is already registered.";
-                return RedirectToAction("Register");
-            }
-
-            var user = new User
-            {
-                Name = FullName,
-                Email = Email,
-                Password = Password
-            };
-
-            _context.Users.Add(user);
+            if (existingUser != null) { TempData["ErrorMessage"] = "This email is already registered."; return RedirectToAction("Register"); }
+            _context.Users.Add(new User { Name = FullName, Email = Email, Password = Password });
             _context.SaveChanges();
-
             TempData["SuccessMessage"] = "Account created successfully! You can now login.";
-
             return RedirectToAction("Login");
         }
 
         [HttpGet]
-        public IActionResult ForgotPassword()
-        {
-            return View();
-        }
+        public IActionResult ForgotPassword() => View();
 
         [HttpPost]
         public IActionResult ForgotPassword(string email)
         {
             var user = _context.Users.FirstOrDefault(u => u.Email == email);
-
-            if (user == null)
-            {
-                TempData["ErrorMessage"] = "This email is not registered.";
-                return RedirectToAction("ForgotPassword");
-            }
-
+            if (user == null) { TempData["ErrorMessage"] = "This email is not registered."; return RedirectToAction("ForgotPassword"); }
             TempData["SuccessMessage"] = "Recovery link has been sent to your email.";
-
             return RedirectToAction("ForgotPassword");
         }
 
@@ -227,24 +168,18 @@ namespace MakeUBeauty.Controllers
         public async Task<IActionResult> Login(string email, string password)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
-
             if (user != null)
             {
-
                 HttpContext.Session.SetInt32("UserId", user.Id);
                 HttpContext.Session.SetString("UserStatus", "LoggedIn");
                 HttpContext.Session.SetString("UserRole", user.Role ?? "Customer");
                 HttpContext.Session.SetString("UserName", user.Name);
-
                 var wishCount = await _context.Wishlists.CountAsync(w => w.UserId == user.Id);
                 var cartCount = await _context.Carts.Where(c => c.UserId == user.Id).SumAsync(c => c.Quantity);
-
                 HttpContext.Session.SetInt32("WishlistCount", wishCount);
                 HttpContext.Session.SetInt32("CartCount", cartCount);
-
                 return user.Role == "Admin" ? RedirectToAction("Index", "Admin") : RedirectToAction("Index", "Home");
             }
-
             TempData["ErrorMessage"] = "The email or password provided is incorrect.";
             return View();
         }
@@ -259,19 +194,9 @@ namespace MakeUBeauty.Controllers
         public IActionResult Profile()
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-
-            if (!userId.HasValue)
-            {
-                return RedirectToAction("Login");
-            }
-
+            if (!userId.HasValue) return RedirectToAction("Login");
             var user = _context.Users.FirstOrDefault(u => u.Id == userId.Value);
-
-            if (user == null)
-            {
-                return RedirectToAction("Login");
-            }
-
+            if (user == null) return RedirectToAction("Login");
             return View(user);
         }
 
@@ -279,37 +204,23 @@ namespace MakeUBeauty.Controllers
         public IActionResult UpdateProfile(User model, IFormFile profileImage)
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-
-            if (!userId.HasValue)
-                return RedirectToAction("Login");
-
+            if (!userId.HasValue) return RedirectToAction("Login");
             var user = _context.Users.FirstOrDefault(u => u.Id == userId.Value);
-
-            if (user == null)
-                return RedirectToAction("Login");
-
+            if (user == null) return RedirectToAction("Login");
             user.Name = model.Name;
             user.PhoneNumber = model.PhoneNumber;
             user.Gender = model.Gender;
             user.Bio = model.Bio;
-
             if (profileImage != null && profileImage.Length > 0)
             {
                 string fileName = Guid.NewGuid().ToString() + Path.GetExtension(profileImage.FileName);
                 string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/profiles", fileName);
-
                 using (var stream = new FileStream(path, FileMode.Create))
-                {
                     profileImage.CopyTo(stream);
-                }
-
                 user.ProfilePicture = fileName;
             }
-
             _context.SaveChanges();
-
             TempData["SuccessMessage"] = "Profile updated successfully.";
-
             return RedirectToAction("Profile");
         }
 
@@ -317,16 +228,9 @@ namespace MakeUBeauty.Controllers
         public IActionResult UpdateCartSelection(int id, bool isSelected)
         {
             var item = _context.Carts.FirstOrDefault(c => c.Id == id);
-
-            if (item == null)
-            {
-                return Json(new { success = false });
-            }
-
+            if (item == null) return Json(new { success = false });
             item.IsSelected = isSelected;
-
             _context.SaveChanges();
-
             return Json(new { success = true });
         }
 
@@ -334,83 +238,33 @@ namespace MakeUBeauty.Controllers
         public IActionResult UpdateCartQuantity(int id, int amount)
         {
             var item = _context.Carts.FirstOrDefault(c => c.Id == id);
-
-            if (item == null)
-                return Json(new { success = false });
-
+            if (item == null) return Json(new { success = false });
             item.Quantity += amount;
-
-            if (item.Quantity <= 0)
-            {
-                _context.Carts.Remove(item);
-            }
-
+            if (item.Quantity <= 0) _context.Carts.Remove(item);
             _context.SaveChanges();
-
-            var newCartCount = _context.Carts
-                .Where(c => c.UserId == item.UserId)
-                .Sum(c => c.Quantity);
-
-            return Json(new
-            {
-                success = true,
-                newQty = item.Quantity > 0 ? item.Quantity : 0,
-                newRowTotal = (item.Price * item.Quantity).ToString("N2"),
-                newCartCount = newCartCount
-            });
+            var newCartCount = _context.Carts.Where(c => c.UserId == item.UserId).Sum(c => c.Quantity);
+            return Json(new { success = true, newQty = item.Quantity > 0 ? item.Quantity : 0, newRowTotal = (item.Price * item.Quantity).ToString("N2"), newCartCount });
         }
 
         [HttpPost]
         public IActionResult ToggleWishlist(int id)
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-
-            if (!userId.HasValue)
-                return Json(new { success = false });
-
-            var existing = _context.Wishlists
-                .FirstOrDefault(w => w.UserId == userId && w.ProductId == id);
-
-            if (existing != null)
-            {
-                _context.Wishlists.Remove(existing);
-            }
-            else
-            {
-                _context.Wishlists.Add(new Wishlist
-                {
-                    UserId = userId.Value,
-                    ProductId = id
-                });
-            }
-
+            if (!userId.HasValue) return Json(new { success = false });
+            var existing = _context.Wishlists.FirstOrDefault(w => w.UserId == userId && w.ProductId == id);
+            if (existing != null) _context.Wishlists.Remove(existing);
+            else _context.Wishlists.Add(new Wishlist { UserId = userId.Value, ProductId = id });
             _context.SaveChanges();
-
-            var count = _context.Wishlists
-                .Count(w => w.UserId == userId);
-
+            var count = _context.Wishlists.Count(w => w.UserId == userId);
             return Json(new { success = true, newCount = count });
         }
 
         public IActionResult Wishlist()
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-
-            if (!userId.HasValue)
-            {
-                return RedirectToAction("Login");
-            }
-
-            var wishlistItems = _context.Wishlists
-                .Where(w => w.UserId == userId.Value)
-                .ToList();
-
-            var productIds = wishlistItems.Select(w => w.ProductId).ToList();
-
-            var products = _context.Products
-                .Where(p => productIds.Contains(p.Id))
-                .ToList();
-
+            if (!userId.HasValue) return RedirectToAction("Login");
+            var productIds = _context.Wishlists.Where(w => w.UserId == userId.Value).Select(w => w.ProductId).ToList();
+            var products = _context.Products.Where(p => productIds.Contains(p.Id)).ToList();
             return View(products);
         }
 
@@ -418,85 +272,27 @@ namespace MakeUBeauty.Controllers
         public IActionResult AddToCart(int id, int quantity = 1)
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-
-            if (!userId.HasValue)
-            {
-                return Json(new
-                {
-                    success = false,
-                    redirect = Url.Action("Login", "Home")
-                });
-            }
-
+            if (!userId.HasValue) return Json(new { success = false, redirect = Url.Action("Login", "Home") });
             int uid = userId.Value;
-
             var product = _context.Products.FirstOrDefault(p => p.Id == id);
-
-            if (product == null)
-            {
-                return Json(new { success = false });
-            }
-
-            var existing = _context.Carts
-                .FirstOrDefault(c => c.UserId == uid && c.ProductId == id);
-
-            if (existing != null)
-            {
-                existing.Quantity += quantity;
-            }
-            else
-            {
-                _context.Carts.Add(new Cart
-                {
-                    UserId = uid,
-                    ProductId = id,
-                    Quantity = quantity,
-
-                    ProductName = product.Name,
-                    ProductImageUrl = product.ImageUrl,
-                    BrandName = product.Brand,
-                    Price = product.Price,
-                    IsSelected = true
-                });
-            }
-
+            if (product == null) return Json(new { success = false });
+            var existing = _context.Carts.FirstOrDefault(c => c.UserId == uid && c.ProductId == id);
+            if (existing != null) existing.Quantity += quantity;
+            else _context.Carts.Add(new Cart { UserId = uid, ProductId = id, Quantity = quantity, ProductName = product.Name, ProductImageUrl = product.ImageUrl, BrandName = product.Brand, Price = product.Price, IsSelected = true });
             _context.SaveChanges();
-
-            var newCount = _context.Carts
-                .Where(c => c.UserId == uid)
-                .Sum(c => c.Quantity);
-
+            var newCount = _context.Carts.Where(c => c.UserId == uid).Sum(c => c.Quantity);
             HttpContext.Session.SetInt32("CartCount", newCount);
-
-            return Json(new
-            {
-                success = true,
-                newCount = newCount
-            });
+            return Json(new { success = true, newCount });
         }
 
         [HttpGet, Route("Home/Cart")]
         public async Task<IActionResult> Cart()
         {
             LoadCounts();
-
             int? userId = HttpContext.Session.GetInt32("UserId");
-
-            if (!userId.HasValue)
-            {
-                return RedirectToAction("Login");
-            }
-
+            if (!userId.HasValue) return RedirectToAction("Login");
             int uid = userId.Value;
-
-            var items = await _context.Carts
-                .Where(c => c.UserId == uid)
-                .Include(c => c.Product)
-                .ToListAsync();
-
-            Console.WriteLine("USER ID: " + uid);
-            Console.WriteLine("ITEM COUNT: " + items.Count);
-
+            var items = await _context.Carts.Where(c => c.UserId == uid).Include(c => c.Product).ToListAsync();
             return View(items);
         }
 
@@ -504,52 +300,28 @@ namespace MakeUBeauty.Controllers
         public IActionResult RemoveFromCart(int id)
         {
             var item = _context.Carts.Find(id);
-
-            if (item != null)
-            {
-                _context.Carts.Remove(item);
-                _context.SaveChanges();
-            }
-
+            if (item != null) { _context.Carts.Remove(item); _context.SaveChanges(); }
             var newCount = _context.Carts.Sum(c => c.Quantity);
-
-            return Json(new
-            {
-                success = true,
-                newCount = newCount
-            });
+            return Json(new { success = true, newCount });
         }
 
         [HttpPost]
         public IActionResult DeleteAllCartItems()
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-
-            if (!userId.HasValue)
-                return Json(new { success = false });
-
-            var items = _context.Carts.Where(c => c.UserId == userId);
-
-            _context.Carts.RemoveRange(items);
+            if (!userId.HasValue) return Json(new { success = false });
+            _context.Carts.RemoveRange(_context.Carts.Where(c => c.UserId == userId));
             _context.SaveChanges();
-
             return Json(new { success = true, newCount = 0 });
         }
 
         [HttpPost]
         public async Task<IActionResult> DeleteSelectedCartItems(List<int> ids)
         {
-            var items = _context.Carts.Where(c => ids.Contains(c.Id));
-
-            _context.Carts.RemoveRange(items);
+            _context.Carts.RemoveRange(_context.Carts.Where(c => ids.Contains(c.Id)));
             await _context.SaveChangesAsync();
-
             int? userId = HttpContext.Session.GetInt32("UserId");
-
-            int newCount = _context.Carts
-                .Where(c => c.UserId == userId)
-                .Sum(c => c.Quantity);
-
+            int newCount = _context.Carts.Where(c => c.UserId == userId).Sum(c => c.Quantity);
             return Json(new { success = true, newCount });
         }
 
@@ -557,20 +329,10 @@ namespace MakeUBeauty.Controllers
         public async Task<IActionResult> Checkout()
         {
             LoadCounts();
-
             int? userId = HttpContext.Session.GetInt32("UserId");
-
-            if (!userId.HasValue)
-            {
-                return RedirectToAction("Login");
-            }
-
+            if (!userId.HasValue) return RedirectToAction("Login");
             int uid = userId.Value;
-
-            var items = await _context.Carts
-                .Where(c => c.UserId == uid && c.IsSelected)
-                .ToListAsync();
-
+            var items = await _context.Carts.Where(c => c.UserId == uid && c.IsSelected).ToListAsync();
             return View(items);
         }
 
@@ -580,71 +342,31 @@ namespace MakeUBeauty.Controllers
             try
             {
                 var user = _context.Users.FirstOrDefault(u => u.Email == model.Email);
-                if (user == null)
-                {
-                    return Json(new { success = false, message = "The email is not yet registered." });
-                }
-
-                var cartItems = _context.Carts
-                    .Where(c => c.UserId == user.Id && c.IsSelected)
-                    .ToList();
-
-                if (!cartItems.Any())
-                {
-                    return Json(new { success = false, message = "Cart is empty." });
-                }
-
+                if (user == null) return Json(new { success = false, message = "The email is not yet registered." });
+                var cartItems = _context.Carts.Where(c => c.UserId == user.Id && c.IsSelected).ToList();
+                if (!cartItems.Any()) return Json(new { success = false, message = "Cart is empty." });
                 model.UserId = user.Id;
                 model.OrderDate = DateTime.Now;
                 model.Status = "Pending";
                 model.ShippingMethod ??= "Standard";
                 model.PaymentMethod ??= "Cash on Delivery";
-
                 model.TotalAmount = cartItems.Sum(c => c.Price * c.Quantity);
-
                 _context.Orders.Add(model);
                 _context.SaveChanges();
-
                 foreach (var item in cartItems)
                 {
-                    var productExists = _context.Products.Any(p => p.Id == item.ProductId);
-
-                    if (!productExists)
-                    {
-                        return Json(new
-                        {
-                            success = false,
-                            message = $"Product '{item.ProductName}' is no longer available."
-                        });
-                    }
-
-                    var orderItem = new OrderItem
-                    {
-                        OrderId = model.Id,
-                        ProductId = item.ProductId,
-                        ProductName = item.ProductName,
-                        Price = item.Price,
-                        Quantity = item.Quantity,
-                        ImageUrl = item.ProductImageUrl
-                    };
-
-                    _context.OrderItems.Add(orderItem);
+                    if (!_context.Products.Any(p => p.Id == item.ProductId))
+                        return Json(new { success = false, message = $"Product '{item.ProductName}' is no longer available." });
+                    _context.OrderItems.Add(new OrderItem { OrderId = model.Id, ProductId = item.ProductId, ProductName = item.ProductName, Price = item.Price, Quantity = item.Quantity, ImageUrl = item.ProductImageUrl });
                 }
-
                 _context.SaveChanges();
-
                 _context.Carts.RemoveRange(cartItems);
                 _context.SaveChanges();
-
                 return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                return Json(new
-                {
-                    success = false,
-                    message = ex.InnerException?.Message ?? ex.Message
-                });
+                return Json(new { success = false, message = ex.InnerException?.Message ?? ex.Message });
             }
         }
 
@@ -652,48 +374,24 @@ namespace MakeUBeauty.Controllers
         public async Task<IActionResult> Orders(string status = "All")
         {
             LoadCounts();
-
             int? userId = HttpContext.Session.GetInt32("UserId");
-
-            if (!userId.HasValue)
-            {
-                return RedirectToAction("Login");
-            }
-
+            if (!userId.HasValue) return RedirectToAction("Login");
             int uid = userId.Value;
-
-            var allOrders = _context.Orders
-                .Where(o => o.UserId == uid)
-                .Include(o => o.OrderItems)
-                .ToList();
-
+            var allOrders = _context.Orders.Where(o => o.UserId == uid).Include(o => o.OrderItems).ToList();
             ViewBag.TotalCount = allOrders.Count;
             ViewBag.ProcessingCount = allOrders.Count(o => o.Status == "Pending" || o.Status == "Processing");
             ViewBag.ShippedCount = allOrders.Count(o => o.Status == "Shipped");
             ViewBag.DeliveredCount = allOrders.Count(o => o.Status == "Delivered");
             ViewBag.ToReviewCount = allOrders.Count(o => o.Status == "To Review");
             ViewBag.ReturnedCount = allOrders.Count(o => o.Status == "Returned");
-
             var query = allOrders.AsQueryable();
-
             if (status != "All")
             {
-                if (status == "Pending")
-                {
-                    query = query.Where(o => o.Status == "Pending" || o.Status == "Processing");
-                }
-                else if (status == "Dispatched")
-                {
-                    query = query.Where(o => o.Status == "Shipped");
-                }
-                else
-                {
-                    query = query.Where(o => o.Status == status);
-                }
+                if (status == "Pending") query = query.Where(o => o.Status == "Pending" || o.Status == "Processing");
+                else if (status == "Dispatched") query = query.Where(o => o.Status == "Shipped");
+                else query = query.Where(o => o.Status == status);
             }
-
             ViewBag.CurrentStatus = status;
-
             return View(query.OrderByDescending(o => o.OrderDate).ToList());
         }
 
@@ -701,98 +399,34 @@ namespace MakeUBeauty.Controllers
         public async Task<IActionResult> OrderDetails(int id)
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
-
-            if (!userId.HasValue)
-                return RedirectToAction("Login");
-
-            var order = await _context.Orders
-                .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId.Value);
-
-            if (order == null)
-                return NotFound();
-
+            if (!userId.HasValue) return RedirectToAction("Login");
+            var order = await _context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId.Value);
+            if (order == null) return NotFound();
             return View(order);
         }
 
         [HttpGet]
         public IActionResult WriteReview(int orderId)
         {
-            var order = _context.Orders
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
-                .FirstOrDefault(o => o.Id == orderId);
-
-            if (order == null)
-            {
-                return NotFound();
-            }
-
+            var order = _context.Orders.Include(o => o.OrderItems).ThenInclude(oi => oi.Product).FirstOrDefault(o => o.Id == orderId);
+            if (order == null) return NotFound();
             return View(order);
         }
 
         [HttpPost]
         public async Task<IActionResult> SubmitReview(int OrderId, List<ReviewInputModel> Reviews)
         {
-            if (Reviews == null || !Reviews.Any())
-            {
-                return BadRequest("No reviews submitted.");
-            }
-
+            if (Reviews == null || !Reviews.Any()) return BadRequest("No reviews submitted.");
             foreach (var r in Reviews)
-            {
-                var review = new Review
-                {
-                    ProductId = r.ProductId,
-                    Rating = r.Rating,
-                    Comment = r.Comment,
-                    DatePosted = DateTime.Now,
-
-                    UserName = HttpContext.Session.GetString("UserName")
-                };
-
-                _context.Reviews.Add(review);
-            }
-
+                _context.Reviews.Add(new Review { ProductId = r.ProductId, Rating = r.Rating, Comment = r.Comment, DatePosted = DateTime.Now, UserName = HttpContext.Session.GetString("UserName") });
             var order = await _context.Orders.FindAsync(OrderId);
-            if (order != null)
-            {
-                order.Status = "Reviewed";
-            }
-
+            if (order != null) order.Status = "Reviewed";
             await _context.SaveChangesAsync();
-
             return RedirectToAction("Orders");
         }
 
-        public IActionResult Terms(string returnUrl = null)
-        {
-            ViewBag.ReturnUrl = returnUrl;
-            return View();
-        }
-
-        public IActionResult Privacy(string returnUrl = null)
-        {
-            ViewBag.ReturnUrl = returnUrl;
-            return View();
-        }
-
-        private void LoadUserWishlist()
-        {
-            int? userId = HttpContext.Session.GetInt32("UserId");
-
-            List<int> ids = new();
-
-            if (userId.HasValue)
-            {
-                ids = _context.Wishlists
-                    .Where(w => w.UserId == userId.Value)
-                    .Select(w => w.ProductId)
-                    .ToList();
-            }
-
-            ViewBag.WishlistProductIds = ids;
-        }
+        public IActionResult Terms(string returnUrl = null) { ViewBag.ReturnUrl = returnUrl; return View(); }
+        public IActionResult Privacy(string returnUrl = null) { ViewBag.ReturnUrl = returnUrl; return View(); }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error() => View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
